@@ -1,0 +1,132 @@
+﻿/* =============================================
+   TOP BAR — Spotify Desktop style
+   ============================================= */
+.top-bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 12px 24px 12px 8px;
+    background: transparent;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    transition: background-color 0.4s ease;
+    gap: 0;
+    height: 64px;
+    flex-shrink: 0;
+}
+/* JS adds this class on scroll */
+.top-bar.scrolled {
+    background: rgba(18, 18, 18, 0.92);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+}
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* Nav arrows (back/forward) */
+.top-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    flex-shrink: 0;
+}
+.top-nav-btn:hover { background: rgba(0,0,0,0.7); }
+.top-nav-btn:disabled { opacity: 0.4; cursor: default; }
+.top-bar-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 16px;
+}
+.top-bar-search-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 520px;
+}
+/* Browse (boussole) button */
+.top-browse-btn {
+    width: 40px;
+    height: 40px;
+    background: #242424;
+    border: none;
+    border-radius: 50%;
+    color: #b3b3b3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s, transform 0.1s;
+}
+.top-browse-btn:hover { color: #ffffff; transform: scale(1.06); }
+.top-browse-btn.active { color: #ffffff; }
+.top-bar-search {
+    flex: 1;
+    min-width: 0;
+}
+.top-search-wrapper {
+    display: flex;
+    align-items: center;
+    background: #242424;
+    border-radius: 500px;
+    padding: 6px 14px;
+    gap: 10px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    height: 42px;
+}
+.top-search-wrapper:focus-within {
+    border-color: #ffffff;
+    background: #2a2a2a;
+}
+.top-search-icon {
+    color: #b3b3b3;
+    flex-shrink: 0;
+}
+.top-search-wrapper:focus-within .top-search-icon {
+    color: #ffffff;
+}
+.top-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-weight: 400;
+    color: #ffffff;
+    min-width: 0;
+    font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+.top-search-input::placeholder {
+    color: #b3b3b3;
+}
+.clear-search-btn {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+.clear-search-btn:hover {
+    color: #ffffff;
+}
+

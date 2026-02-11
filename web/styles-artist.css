@@ -1,0 +1,305 @@
+﻿/* =============================================
+   ARTIST PAGE — Spotify Desktop style
+   ============================================= */
+.artist-profile {
+    background: #121212;
+    color: #ffffff;
+    min-height: 100%;
+}
+
+/* Large blurred photo header — full width */
+.artist-header-large {
+    position: relative;
+    height: 340px;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+}
+.artist-header-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 30%, rgba(0,0,0,0.55) 70%, #121212 100%);
+}
+.artist-header-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 24px 24px;
+    width: 100%;
+}
+.artist-verified {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.artist-verified svg { color: #5c67f2; }
+.artist-name-large {
+    font-size: clamp(24px, 6vw, 72px);
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    margin: 0 0 16px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+.artist-listeners {
+    font-size: 13px;
+    color: #ffffffb3;
+    font-weight: 500;
+}
+
+/* Control bar below header (transparent — no red box) */
+.artist-control-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 24px 20px;
+    background: transparent;
+}
+.play-all-btn {
+    width: 56px;
+    height: 56px;
+    background: #1DB954;
+    border: none;
+    border-radius: 50%;
+    color: #000000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+.play-all-btn:hover { transform: scale(1.06); background: #1ed760; }
+.play-all-btn svg { margin-left: 2px; }
+
+.artist-action-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #ffffff;
+    padding: 7px 20px;
+    border-radius: 500px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    white-space: nowrap;
+}
+.artist-action-btn:hover { border-color: #ffffff; transform: scale(1.02); }
+.artist-action-btn.following { color: #1DB954; border-color: #1DB954; }
+
+.artist-options-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: color 0.15s;
+}
+.artist-options-btn:hover { color: #ffffff; }
+
+/* "Popular" songs table */
+.artist-popular-section {
+    padding: 0 24px 32px;
+}
+.artist-popular-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.artist-song-row {
+    display: grid;
+    grid-template-columns: 24px 36px 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 56px;
+}
+.artist-song-row:hover { background: rgba(255,255,255,0.07); }
+.artist-song-row:hover .song-row-num { display: none; }
+.artist-song-row:hover .song-row-play { display: flex; }
+.artist-song-row.playing { background: rgba(29,185,84,0.12); }
+.artist-song-row.playing .song-row-num { color: #1DB954; }
+.artist-song-row.playing .song-row-title { color: #1DB954; }
+
+.song-row-num {
+    font-size: 14px;
+    color: #a7a7a7;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.song-row-play {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+.song-row-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+.song-row-info { min-width: 0; }
+.song-row-title {
+    font-size: 15px;
+    font-weight: 400;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.song-row-artist {
+    font-size: 12px;
+    color: #a7a7a7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.song-row-like {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: #1DB954;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.15s, transform 0.1s;
+}
+.artist-song-row:hover .song-row-like { opacity: 1; }
+.song-row-like:hover { transform: scale(1.1); }
+.song-row-duration {
+    font-size: 13px;
+    color: #a7a7a7;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* "See more" link */
+.artist-see-more {
+    background: none;
+    border: none;
+    color: #a7a7a7;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 8px;
+    transition: color 0.15s;
+    margin-top: 8px;
+}
+.artist-see-more:hover { color: #ffffff; }
+
+/* compat: playlist view reuses these buttons */
+.shuffle-btn, .follow-btn, .menu-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #ffffff;
+    padding: 7px 20px;
+    border-radius: 500px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s, transform 0.1s;
+}
+.shuffle-btn:hover, .follow-btn:hover, .menu-btn:hover { border-color: #ffffff; transform: scale(1.02); }
+.menu-btn { border: none; padding: 8px; border-radius: 50%; color: #b3b3b3; }
+.menu-btn:hover { color: #ffffff; transform: none; border: none; }
+.album-cover-small { display: none; }
+
+/* Old aliases kept for compatibility */
+.artist-main-content { padding: 0 24px; }
+.popular-songs { }
+.popular-songs h2 { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 16px; }
+.popular-list { display: flex; flex-direction: column; }
+.popular-song-item {
+    display: grid;
+    grid-template-columns: 32px 40px 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    min-height: 56px;
+    transition: background 0.15s;
+}
+.popular-song-item:hover { background: rgba(255,255,255,0.07); }
+/* Num cell — muestra número y lo intercambia por icono play en hover (estilo Spotify) */
+.song-num-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 32px;
+    height: 32px;
+}
+.song-num-label {
+    font-size: 14px;
+    color: #a7a7a7;
+    transition: opacity 0.1s;
+    user-select: none;
+}
+.song-num-play {
+    position: absolute;
+    opacity: 0;
+    color: #ffffff;
+    transition: opacity 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.popular-song-item:hover .song-num-label  { opacity: 0; }
+.popular-song-item:hover .song-num-play   { opacity: 1; }
+.popular-song-item.playing .song-num-label { opacity: 0; }
+.popular-song-item.playing .song-num-play  { opacity: 1; color: #1DB954; }
+.song-thumbnail-small {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 2px;
+    margin-right: 0;
+}
+.song-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.song-title { font-size: 15px; font-weight: 400; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-meta { font-size: 12px; color: #a7a7a7; display: flex; gap: 6px; }
+.play-count { color: #a7a7a7; font-size: 12px; }
+.explicit-label { background: rgba(255,255,255,0.2); color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+.song-duration { font-size: 13px; color: #a7a7a7; text-align: right; font-variant-numeric: tabular-nums; margin-left: 0; }
+.play-btn-small {
+    width: 20px;
+    height: 20px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    padding: 0;
+    transition: opacity 0.15s;
+    margin-left: 0;
+}
+

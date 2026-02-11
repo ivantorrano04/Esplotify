@@ -1,0 +1,693 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:isolate';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:servidor_esplotify/database.dart';
+import 'package:servidor_esplotify/auth.dart';
+
+final yt = YoutubeExplode();
+final ffmpegPath = r'C:\ffmpeg\bin\ffmpeg.exe';
+
+// 🧠 Caché en memoria de manifests
+// Caché ligera que almacena la URL del mejor stream de audio (no el objeto StreamManifest)
+final Map<String, String> _audioUrlCache = {};
+
+// Helper que se ejecuta en un isolate para obtener la mejor URL de audio de un id
+void _isolateFetchBestAudioUrl(List<dynamic> message) async {
+  final SendPort send = message[0] as SendPort;
+  final String id = message[1] as String;
+  try {
+    final localYt = YoutubeExplode();
+    final manifest = await localYt.videos.streams
+        .getManifest(id, ytClients: [YoutubeApiClient.ios, YoutubeApiClient.androidVr]);
+    final audio = manifest.audioOnly.withHighestBitrate();
+    final url = audio.url.toString();
+    // Enviamos mapa con resultado (para distinguir error)
+    send.send({'url': url});
+    localYt.close();
+  } catch (e) {
+    send.send({'error': e.toString()});
+  }
+}
+
+// Lanza un isolate y espera la URL resultante (o lanza excepción)
+Future<String> _fetchBestAudioUrlInIsolate(String id, {Duration timeout = const Duration(seconds: 30)}) async {
+  final rp = ReceivePort();
+  await Isolate.spawn(_isolateFetchBestAudioUrl, [rp.sendPort, id]);
+  try {
+    final res = await rp.first.timeout(timeout) as Map;
+    rp.close();
+    if (res.containsKey('url')) return res['url'] as String;
+    throw Exception('Isolate fetch error: ${res['error']}');
+  } on TimeoutException catch (e) {
+    rp.close();
+    throw Exception('Timeout fetching manifest for $id: $e');
+  }
+}
+
+// Obtener (y cachear) la mejor URL de audio para un id
+Future<String> getBestAudioUrlCached(String id) async {
+  if (_audioUrlCache.containsKey(id)) {
+    print('Audio URL cache hit for $id');
+    return _audioUrlCache[id]!;
+  }
+  print('Getting best audio URL for $id in isolate');
+  final url = await _fetchBestAudioUrlInIsolate(id);
+  _audioUrlCache[id] = url;
+  print('Audio URL obtained and cached for $id');
+  return url;
+}
+
+// Prefetch concurrente con límite de isolates activos
+Future<void> prefetchAudioUrls(List<String> ids, {int maxConcurrent = 4}) async {
+  final queue = List<String>.from(ids);
+
+  while (queue.isNotEmpty) {
+    final batch = <Future>[];
+    for (var i = 0; i < maxConcurrent && queue.isNotEmpty; i++) {
+      final id = queue.removeAt(0);
+      if (_audioUrlCache.containsKey(id)) continue;
+      batch.add(getBestAudioUrlCached(id).then((_) {
+        // ya cacheado
+      }).catchError((e) {
+        print('Error prefetching $id: $e');
+      }));
+    }
+    if (batch.isNotEmpty) {
+      try {
+        await Future.wait(batch);
+      } catch (_) {
+        // Errores individuales ya reportados en catchError
+      }
+    }
+  }
+}
+
+// Middleware CORS
+Response _cors(Response res) => res.change(headers: {
+      ...res.headers,
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, Content-Type, Range, Authorization',
+    });
+
+Response _options(Request req) => Response.ok('', headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, Content-Type, Range, Authorization'
+    });
+
+// Ruta de búsqueda optimizada
+Future<Response> _search(Request req) async {
+  final query = req.url.queryParameters['q'];
+  if (query == null || query.isEmpty) {
+    return Response(400, body: 'Falta el parámetro q');
+  }
+
+  // Optimizar el tamaño de la caché
+  if (_audioUrlCache.length > 50) {
+    final keysToRemove = _audioUrlCache.keys.take(20).toList();
+    for (final key in keysToRemove) {
+      _audioUrlCache.remove(key);
+    }
+    print('Cache optimizada (eliminados elementos antiguos)');
+  }
+
+  try {
+    // Realizar búsqueda eficiente
+    final results = await yt.search.search(query);
+    final songResults = results
+        .where((v) => v.duration?.inSeconds != null)
+        .where((v) => v.duration!.inSeconds >= 30 && v.duration!.inSeconds <= 600)
+        .take(10)
+        .map((v) => {
+              'id': v.id.value,
+              'title': v.title,
+              'author': v.author,
+              'duration': v.duration!.inSeconds,
+              'thumbnail': v.thumbnails.highResUrl,
+
+    // Filtrar y categorizar
+    final canciones = allResults
+        .where((song) =>
+            (song['duration'] as int) >= 50 &&
+            (song['duration'] as int) <= 600)
+        .take(10)
+        .toList();
+
+    final podcasts = allResults
+        .where((song) => (song['duration'] as int) > 600)
+        .take(10)
+        .toList();
+
+    final categorizedResults = {
+      'Canciones': canciones,
+      'Podcasts o Recopilaciones': podcasts,
+    };
+
+    // 🚀 Responder inmediatamente
+    final response = _cors(Response.ok(
+      jsonEncode(categorizedResults),
+      headers: {'Content-Type': 'application/json'},
+    ));
+
+    // ⚙️ Precargar (en background) URLs de audio solo de canciones usando isolates
+    if (canciones.isNotEmpty) {
+      Future.microtask(() async {
+        try {
+          final ids = canciones.map((s) => s['id'] as String).toList();
+          // Lanzar prefetch concurrente (no await aquí para responder rápido)
+          await prefetchAudioUrls(ids, maxConcurrent: 4);
+        } catch (e) {
+          print('Error precargando URLs de audio de canciones: $e');
+        }
+      });
+    }
+
+    return response;
+  } catch (e) {
+    return _cors(Response.internalServerError(
+        body: jsonEncode({'error': 'Error en búsqueda: $e'})));
+  }
+}
+
+// Ruta de artista
+Future<Response> _artist(Request req) async {
+  final artistName = req.url.queryParameters['name'];
+  if (artistName == null || artistName.isEmpty) {
+    return Response(400, body: 'Falta el parámetro name');
+  }
+
+  try {
+    final searchQuery = '$artistName music';
+    final results = await yt.search.search(searchQuery);
+    final validResults = results.where((v) => v.title != null && v.duration != null).toList();
+
+    final artistSongs = validResults
+        .where((video) =>
+            (video.author.toLowerCase().contains(artistName.toLowerCase()) ||
+            artistName.toLowerCase().contains(video.author.toLowerCase())))
+        .where((video) => video.duration != null)
+        .where((video) =>
+            video.duration!.inSeconds >= 120 &&
+            video.duration!.inSeconds <= 600)
+        .take(20)
+        .map((v) => {
+              'id': v.id.value ?? '',
+              'title': v.title ?? '',
+              'author': v.author ?? '',
+              'duration': v.duration?.inSeconds ?? 0,
+              'thumbnail': v.thumbnails.highResUrl ?? '',
+              'uploadDate': v.uploadDate?.toIso8601String() ?? '',
+              'viewCount': v.engagement.viewCount ?? 0,
+            })
+        .toList();
+
+    final topSongs = artistSongs.take(15).toList();
+
+    final artistData = {
+      'artist': artistName,
+      'totalSongs': topSongs.length,
+      'songs': topSongs,
+    };
+
+    return _cors(Response.ok(jsonEncode(artistData),
+        headers: {'Content-Type': 'application/json'}));
+  } catch (e) {
+    return _cors(Response.internalServerError(
+        body: jsonEncode({'error': 'Error obteniendo información del artista: $e'})));
+  }
+}
+
+// 🎵 Ruta de audio con streaming progresivo
+Future<Response> _audio(Request req) async {
+  final id = req.url.queryParameters['id'];
+  if (id == null || id.isEmpty) {
+    return Response(400, body: 'Falta el parámetro id');
+  }
+
+    try {
+    String? audioUrl;
+
+    if (_audioUrlCache.containsKey(id)) {
+      print('Using cached audio URL for $id');
+      audioUrl = _audioUrlCache[id];
+    } else {
+      try {
+        print('Fast path: intentando obtener stream directo...');
+        final manifest = await yt.videos.streams
+            .getManifest(id, ytClients: [YoutubeApiClient.ios, YoutubeApiClient.androidVr])
+            .timeout(Duration(seconds: 10));
+        final audio = manifest.audioOnly.withHighestBitrate();
+        audioUrl = audio.url.toString();
+        _audioUrlCache[id] = audioUrl;
+        print('Fast path OK');
+      } catch (e) {
+        print('Fast path falló, usando isolate para obtener URL...');
+        audioUrl = await getBestAudioUrlCached(id);
+      }
+    }
+
+    final streamUrl = Uri.parse(audioUrl!);
+    final httpClient = HttpClient();
+    final rangeHeader = req.headers['range'];
+
+    // 🎧 Streaming progresivo con rango
+    final request = await httpClient.getUrl(streamUrl);
+
+    if (rangeHeader != null) {
+      request.headers.add('Range', rangeHeader);
+    }
+
+    final response = await request.close();
+
+    final headers = {
+      'Content-Type': 'audio/mp4',
+      'Accept-Ranges': 'bytes',
+    };
+
+    if (response.statusCode == 206) {
+      headers['Content-Range'] = response.headers.value('content-range') ?? '';
+      headers['Content-Length'] = response.headers.value('content-length') ?? '';
+      return _cors(Response(206, body: response, headers: headers));
+    } else {
+      headers['Content-Length'] = response.headers.value('content-length') ?? '';
+      return _cors(Response.ok(response, headers: headers));
+    }
+  } catch (e) {
+    print('Error obteniendo audio: $e');
+    return _cors(Response.internalServerError(body: 'Error obteniendo audio'));
+  }
+}
+
+// Middleware de autenticación
+Middleware authMiddleware() {
+  return (Handler innerHandler) {
+    return (Request request) async {
+      final authHeader = request.headers['authorization'];
+      if (authHeader != null && authHeader.startsWith('Bearer ')) {
+        final token = authHeader.substring(7);
+        final user = await AuthService.getUserFromToken(token);
+        if (user != null) {
+          return innerHandler(request.change(context: {'user': user}));
+        }
+      }
+      return _cors(Response.forbidden(jsonEncode({'error': 'Token inválido o expirado'})));
+    };
+  };
+}
+
+// Ruta de registro
+Future<Response> _register(Request req) async {
+  try {
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final username = data['username']?.toString();
+    final email = data['email']?.toString();
+    final password = data['password']?.toString();
+    final day = data['day']?.toString();
+    final month = data['month']?.toString();
+    final year = data['year']?.toString();
+    final gender = data['gender']?.toString();
+    final marketing = data['marketing'] == true;
+    final terms = data['terms'] == true;
+
+    if (username == null || email == null || password == null ||
+        username.isEmpty || email.isEmpty || password.isEmpty) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Todos los campos son requeridos'})));
+    }
+
+    if (password.length < 6) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'La contraseña debe tener al menos 6 caracteres'})));
+    }
+
+    if (!terms) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Debes aceptar los términos y condiciones'})));
+    }
+
+    final db = DatabaseHelper();
+
+    // Verificar si el usuario ya existe
+    if (await db.userExists(username, email)) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'El usuario o email ya existe'})));
+    }
+
+    // Construir fecha de nacimiento
+    String? birthdate;
+    if (day != null && month != null && year != null &&
+        day.isNotEmpty && month.isNotEmpty && year.isNotEmpty) {
+      birthdate = '$year-$month-$day';
+    }
+
+    // Crear nuevo usuario
+    final hashedPassword = db.hashPassword(password);
+    final user = User(
+      username: username,
+      email: email,
+      passwordHash: hashedPassword,
+      birthdate: birthdate,
+      gender: gender,
+      marketing: marketing,
+      terms: terms,
+    );
+
+    final userId = await db.insertUser(user);
+
+    // Generar token
+    final userWithId = User(
+      id: userId,
+      username: username,
+      email: email,
+      passwordHash: hashedPassword,
+      birthdate: birthdate,
+      gender: gender,
+      marketing: marketing,
+      terms: terms,
+    );
+
+    final token = AuthService.generateToken(userWithId);
+
+    return _cors(Response.ok(jsonEncode({
+      'message': 'Usuario registrado exitosamente',
+      'token': token,
+      'user': {
+        'id': userId,
+        'username': username,
+        'email': email,
+        'birthdate': birthdate,
+        'gender': gender,
+        'marketing': marketing,
+        'terms': terms,
+      }
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error en registro: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta de login
+Future<Response> _login(Request req) async {
+  try {
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final username = data['username']?.toString();
+    final password = data['password']?.toString();
+
+    if (username == null || password == null ||
+        username.isEmpty || password.isEmpty) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Usuario y contraseña son requeridos'})));
+    }
+
+    final db = DatabaseHelper();
+    final user = await db.getUserByUsername(username);
+
+    if (user == null || !db.verifyPassword(password, user.passwordHash)) {
+      return _cors(Response.unauthorized(jsonEncode({'error': 'Credenciales inválidas'})));
+    }
+
+    final token = AuthService.generateToken(user);
+
+    return _cors(Response.ok(jsonEncode({
+      'message': 'Login exitoso',
+      'token': token,
+      'user': {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+      }
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error en login: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para verificar token (opcional)
+Future<Response> _verifyToken(Request req) async {
+  final user = req.context['user'] as Map<String, dynamic>;
+  return _cors(Response.ok(jsonEncode({
+    'valid': true,
+    'user': user
+  }), headers: {'Content-Type': 'application/json'}));
+}
+
+// Ruta para crear playlist
+Future<Response> _createPlaylist(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final name = data['name']?.toString();
+    if (name == null || name.isEmpty) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Nombre de playlist requerido'})));
+    }
+
+    final db = DatabaseHelper();
+    final playlistId = await db.createPlaylist(user['id'], name);
+
+    return _cors(Response.ok(jsonEncode({
+      'success': true,
+      'message': 'Playlist creada exitosamente',
+      'playlist': {
+        'id': playlistId,
+        'name': name,
+        'created_at': DateTime.now().toIso8601String(),
+      }
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error creando playlist: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para obtener playlists del usuario
+Future<Response> _getUserPlaylists(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final db = DatabaseHelper();
+    final playlists = await db.getUserPlaylists(user['id']);
+
+    return _cors(Response.ok(jsonEncode({
+      'playlists': playlists
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error obteniendo playlists: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para añadir canción a playlist
+Future<Response> _addSongToPlaylist(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final playlistId = data['playlist_id'];
+    final song = data['song'];
+
+    if (playlistId == null || song == null) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Playlist ID y canción requeridos'})));
+    }
+
+    final db = DatabaseHelper();
+
+    // Verificar que la playlist pertenece al usuario
+    final playlists = await db.getUserPlaylists(user['id']);
+    final playlist = playlists.firstWhere(
+      (p) => p['id'] == playlistId,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (playlist.isEmpty) {
+      return _cors(Response.forbidden(jsonEncode({'error': 'Playlist no encontrada o no autorizada'})));
+    }
+
+    // Verificar si la canción ya está en la playlist
+    final isInPlaylist = await db.isSongInPlaylist(playlistId, song['id']);
+    if (isInPlaylist) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'La canción ya está en la playlist'})));
+    }
+
+    await db.addSongToPlaylist(playlistId, song);
+
+    return _cors(Response.ok(jsonEncode({
+      'message': 'Canción añadida a la playlist exitosamente'
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error añadiendo canción a playlist: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para obtener canciones de una playlist
+Future<Response> _getPlaylistSongs(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final playlistId = int.tryParse(req.url.queryParameters['playlist_id'] ?? '');
+
+    if (playlistId == null) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Playlist ID requerido'})));
+    }
+
+    final db = DatabaseHelper();
+
+    // Verificar que la playlist pertenece al usuario
+    final playlists = await db.getUserPlaylists(user['id']);
+    final playlist = playlists.firstWhere(
+      (p) => p['id'] == playlistId,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (playlist.isEmpty) {
+      return _cors(Response.forbidden(jsonEncode({'error': 'Playlist no encontrada o no autorizada'})));
+    }
+
+    final songs = await db.getPlaylistSongs(playlistId);
+
+    final mappedSongs = songs.map((song) => {
+      'id': song['song_id'],
+      'title': song['song_title'],
+      'author': song['song_author'],
+      'duration': song['song_duration'],
+      'thumbnail': song['song_thumbnail'],
+    }).toList();
+
+    return _cors(Response.ok(jsonEncode({
+      'playlist': playlist,
+      'songs': mappedSongs
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error obteniendo canciones de playlist: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para eliminar playlist
+Future<Response> _deletePlaylist(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final playlistId = int.tryParse(data['playlist_id']?.toString() ?? '');
+    if (playlistId == null) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Playlist ID requerido'})));
+    }
+
+    final db = DatabaseHelper();
+    final deleted = await db.deletePlaylist(playlistId, user['id']);
+
+    if (deleted == 0) {
+      return _cors(Response.notFound(jsonEncode({'error': 'Playlist no encontrada'})));
+    }
+
+    return _cors(Response.ok(jsonEncode({
+      'success': true,
+      'message': 'Playlist eliminada exitosamente'
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error eliminando playlist: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+// Ruta para remover canción de playlist
+Future<Response> _removeSongFromPlaylist(Request req) async {
+  try {
+    final user = req.context['user'] as Map<String, dynamic>;
+    final body = await req.readAsString();
+    final data = jsonDecode(body);
+
+    final playlistId = data['playlist_id'];
+    final songId = data['song_id'];
+
+    if (playlistId == null || songId == null) {
+      return _cors(Response.badRequest(body: jsonEncode({'error': 'Playlist ID y Song ID requeridos'})));
+    }
+
+    final db = DatabaseHelper();
+
+    // Verificar que la playlist pertenece al usuario
+    final playlists = await db.getUserPlaylists(user['id']);
+    final playlist = playlists.firstWhere(
+      (p) => p['id'] == playlistId,
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (playlist.isEmpty) {
+      return _cors(Response.forbidden(jsonEncode({'error': 'Playlist no encontrada o no autorizada'})));
+    }
+
+    await db.removeSongFromPlaylist(playlistId, songId);
+
+    return _cors(Response.ok(jsonEncode({
+      'message': 'Canción removida de la playlist exitosamente'
+    }), headers: {'Content-Type': 'application/json'}));
+
+  } catch (e) {
+    print('Error removiendo canción de playlist: $e');
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+  }
+}
+
+void main(List<String> args) async {
+  final router = Router()
+    ..get('/search', _search)
+    ..get('/artist', _artist)
+    ..get('/audio', _audio)
+    ..post('/register', _register)
+    ..post('/login', _login)
+    ..get('/verify-token', authMiddleware()(_verifyToken))
+    ..post('/create-playlist', authMiddleware()(_createPlaylist))
+    ..get('/user-playlists', authMiddleware()(_getUserPlaylists))
+    ..post('/add-to-playlist', authMiddleware()(_addSongToPlaylist))
+    ..get('/playlist-songs', authMiddleware()(_getPlaylistSongs))
+    ..delete('/delete-playlist', authMiddleware()(_deletePlaylist))
+    ..delete('/remove-from-playlist', authMiddleware()(_removeSongFromPlaylist))
+    ..options('/<ignored|.*>', _options);
+
+  final staticHandler =
+      createStaticHandler('web', defaultDocument: 'index.html');
+
+  final handler = const Pipeline()
+      .addMiddleware(logRequests())
+      .addHandler((request) {
+    final path = request.url.path;
+    if (path == 'search' ||
+        path == 'audio' ||
+        path == 'artist' ||
+        path == 'register' ||
+        path == 'login' ||
+        path == 'verify-token' ||
+        path == 'create-playlist' ||
+        path == 'user-playlists' ||
+        path == 'add-to-playlist' ||
+        path == 'playlist-songs' ||
+        path == 'delete-playlist' ||
+        path == 'remove-from-playlist') {
+      return router(request);
+    }
+    return staticHandler(request);
+  });
+
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
+  print('✅ Servidor escuchando en http://localhost:${server.port}');
+}

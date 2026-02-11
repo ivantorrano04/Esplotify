@@ -1,0 +1,133 @@
+.lyrics-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 90px; /* Altura del reproductor */
+    width: 0;
+    background-color: #121212;
+    z-index: 1000;
+    overflow: hidden;
+    transition: width 0.3s ease-in-out;
+    border-left: 1px solid #282828;
+}
+
+.lyrics-panel.show {
+    width: 380px;
+}
+
+.lyrics-header {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #282828;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.lyrics-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.close-lyrics {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-lyrics:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lyrics-content {
+    padding: 24px;
+    height: calc(100% - 64px);
+    overflow-y: auto;
+}
+
+.lyrics-text {
+    font-size: 28px;
+    line-height: 1.5;
+    font-weight: 700;
+    color: #b3b3b3;
+    text-align: left;
+}
+
+.lyrics-line {
+    margin-bottom: 28px;
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity   0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                color     0.35s ease;
+    opacity: 0.28;
+    transform: scale(0.94);
+    transform-origin: left center;
+    will-change: transform, opacity;
+}
+
+.lyrics-line:hover {
+    opacity: 0.7;
+}
+
+/* Active line — full brightness, no size jump */
+.lyrics-line.active {
+    color: #fff;
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Lines immediately before/after — slightly dimmer */
+.lyrics-line.lyr-prev1,
+.lyrics-line.lyr-next1 {
+    color: #e0e0e0;
+    opacity: 0.65;
+    transform: scale(0.97);
+}
+
+/* Two lines before/after — more dim */
+.lyrics-line.lyr-prev2,
+.lyrics-line.lyr-next2 {
+    color: #c0c0c0;
+    opacity: 0.42;
+    transform: scale(0.955);
+}
+
+/* Mostrar el contenido principal con margen cuando el panel de letras está abierto */
+.main-content.lyrics-open {
+    margin-right: 380px;
+    transition: margin-right 0.3s ease-in-out;
+}
+
+/* Botón de letras en el reproductor */
+.lyrics-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 10px;
+    transition: color 0.2s ease;
+    margin-right: 10px;
+}
+
+.lyrics-btn:hover {
+    color: #fff;
+}
+
+.lyrics-btn.active {
+    color: #1DB954;
+}
+
+/* Ajustar el reproductor cuando el panel de letras está abierto */
+.player.lyrics-open {
+    margin-right: 380px;
+    transition: margin-right 0.3s ease-in-out;
+}

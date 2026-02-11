@@ -1,0 +1,33 @@
+{
+  "name": "esplotify",
+  "version": "1.0.0",
+  "description": "Esplotify - tu reproductor de musica",
+  "main": "main.js",
+  "author": "Esplotify",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "dist:dir": "electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.esplotify.app",
+    "productName": "Esplotify",
+    "copyright": "Copyright 2026 Esplotify",
+    "directories": { "output": "../dist" },
+    "files": ["main.js"],
+    "extraResources": [{ "from": "resources/", "to": "server", "filter": ["**/*"] }],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Esplotify",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

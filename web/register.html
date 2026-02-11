@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Esplotify</title>
+    <link rel="stylesheet" href="auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="spotify-register-container">
+        <div class="spotify-register-card">
+            <div class="spotify-logo">
+                <svg viewBox="0 0 24 24" width="48" height="48">
+                    <path fill="#1DB954" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66.25 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.6-.12-.421.18-.78.6-.899 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.241 1.08zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56z"/>
+                </svg>
+                <span>Spotify</span>
+            </div>
+
+            <div class="register-form-container">
+                <h1>Regístrate gratis para escuchar</h1>
+
+                <div class="social-register">
+                    <button class="social-btn google-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Registrarse con Google
+                    </button>
+                    <button class="social-btn facebook-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Registrarse con Facebook
+                    </button>
+                    <button class="social-btn apple-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#000000" d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        </svg>
+                        Registrarse con Apple
+                    </button>
+                </div>
+
+                <div class="divider">
+                    <span>o</span>
+                </div>
+
+                <form id="registerForm" class="register-form">
+                    <div class="form-group">
+                        <label for="email">¿Cuál es tu dirección de correo electrónico?</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmEmail">Confirma tu dirección de correo electrónico</label>
+                        <input type="email" id="confirmEmail" name="confirmEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Crea una contraseña</label>
+                        <input type="password" id="password" name="password" required minlength="8">
+                        <small class="password-hint">La contraseña debe tener al menos 8 caracteres.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">¿Cómo quieres que te llamemos?</label>
+                        <input type="text" id="username" name="username" required minlength="3">
+                        <small class="username-hint">Este será tu nombre de perfil público.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha de nacimiento</label>
+                        <div class="birthdate-fields">
+                           <select id="day" name="day" required>
+    <option value="">Día</option>
+    <option value="01">1</option>
+    <option value="02">2</option>
+    <option value="03">3</option>
+    <option value="04">4</option>
+    <option value="05">5</option>
+    <option value="06">6</option>
+    <option value="07">7</option>
+    <option value="08">8</option>
+    <option value="09">9</option>
+    <option value="10">10</option>
+    <option value="11">11</option>
+    <option value="12">12</option>
+    <option value="13">13</option>
+    <option value="14">14</option>
+    <option value="15">15</option>
+    <option value="16">16</option>
+    <option value="17">17</option>
+    <option value="18">18</option>
+    <option value="19">19</option>
+    <option value="20">20</option>
+    <option value="21">21</option>
+    <option value="22">22</option>
+    <option value="23">23</option>
+    <option value="24">24</option>
+    <option value="25">25</option>
+    <option value="26">26</option>
+    <option value="27">27</option>
+    <option value="28">28</option>
+    <option value="29">29</option>
+    <option value="30">30</option>
+    <option value="31">31</option>
+</select>
+
+<select id="month" name="month" required>
+    <option value="">Mes</option>
+    <option value="01">Enero</option>
+    <option value="02">Febrero</option>
+    <option value="03">Marzo</option>
+    <option value="04">Abril</option>
+    <option value="05">Mayo</option>
+    <option value="06">Junio</option>
+    <option value="07">Julio</option>
+    <option value="08">Agosto</option>
+    <option value="09">Septiembre</option>
+    <option value="10">Octubre</option>
+    <option value="11">Noviembre</option>
+    <option value="12">Diciembre</option>
+</select>
+
+<select id="year" name="year" required>
+    <option value="">Año</option>
+    <option value="1950">1950</option>
+    <option value="1951">1951</option>
+    <option value="1952">1952</option>
+    <option value="1953">1953</option>
+    <option value="1954">1954</option>
+    <option value="1955">1955</option>
+    <option value="1956">1956</option>
+    <option value="1957">1957</option>
+    <option value="1958">1958</option>
+    <option value="1959">1959</option>
+    <option value="1960">1960</option>
+    <option value="1961">1961</option>
+    <option value="1962">1962</option>
+    <option value="1963">1963</option>
+    <option value="1964">1964</option>
+    <option value="1965">1965</option>
+    <option value="1966">1966</option>
+    <option value="1967">1967</option>
+    <option value="1968">1968</option>
+    <option value="1969">1969</option>
+    <option value="1970">1970</option>
+    <option value="1971">1971</option>
+    <option value="1972">1972</option>
+    <option value="1973">1973</option>
+    <option value="1974">1974</option>
+    <option value="1975">1975</option>
+    <option value="1976">1976</option>
+    <option value="1977">1977</option>
+    <option value="1978">1978</option>
+    <option value="1979">1979</option>
+    <option value="1980">1980</option>
+    <option value="1981">1981</option>
+    <option value="1982">1982</option>
+    <option value="1983">1983</option>
+    <option value="1984">1984</option>
+    <option value="1985">1985</option>
+    <option value="1986">1986</option>
+    <option value="1987">1987</option>
+    <option value="1988">1988</option>
+    <option value="1989">1989</option>
+    <option value="1990">1990</option>
+    <option value="1991">1991</option>
+    <option value="1992">1992</option>
+    <option value="1993">1993</option>
+    <option value="1994">1994</option>
+    <option value="1995">1995</option>
+    <option value="1996">1996</option>
+    <option value="1997">1997</option>
+    <option value="1998">1998</option>
+    <option value="1999">1999</option>
+    <option value="2000">2000</option>
+    <option value="2001">2001</option>
+    <option value="2002">2002</option>
+    <option value="2003">2003</option>
+    <option value="2004">2004</option>
+    <option value="2005">2005</option>
+    <option value="2006">2006</option>
+    <option value="2007">2007</option>
+    <option value="2008">2008</option>
+    <option value="2009">2009</option>
+    <option value="2010">2010</option>
+    <option value="2011">2011</option>
+    <option value="2012">2012</option>
+    <option value="2013">2013</option>
+    <option value="2014">2014</option>
+    <option value="2015">2015</option>
+    <option value="2016">2016</option>
+    <option value="2017">2017</option>
+    <option value="2018">2018</option>
+    <option value="2019">2019</option>
+    <option value="2020">2020</option>
+    <option value="2021">2021</option>
+    <option value="2022">2022</option>
+    <option value="2023">2023</option>
+    <option value="2024">2024</option>
+    <option value="2025">2025</option>
+</select>
+
+                                <!-- Years will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Género</label>
+                        <div class="gender-options">
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="male" required>
+                                <span class="radio-checkmark"></span>
+                                Hombre
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="female">
+                                <span class="radio-checkmark"></span>
+                                Mujer
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="non-binary">
+                                <span class="radio-checkmark"></span>
+                                No binario
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="other">
+                                <span class="radio-checkmark"></span>
+                                Otro
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="prefer-not-to-say">
+                                <span class="radio-checkmark"></span>
+                                Prefiero no decirlo
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-container marketing">
+                            <input type="checkbox" id="marketing">
+                            <span class="checkmark"></span>
+                            Compartir mis datos de registro con los proveedores de contenido de Spotify para fines de marketing.
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-container terms">
+                            <input type="checkbox" id="terms" required>
+                            <span class="checkmark"></span>
+                            Acepto los <a href="#" target="_blank">Términos y Condiciones de Uso</a> de Esplotify.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="register-btn">Registrarse</button>
+                </form>
+
+                <div class="login-link">
+                    <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+                </div>
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <!-- ───────── GENRE ONBOARDING OVERLAY ───────── -->
+    <div id="genreOnboarding" style="
+        display:none;
+        position:fixed;inset:0;
+        background:#121212;
+        z-index:9999;
+        overflow-y:auto;
+        font-family:'Inter',-apple-system,sans-serif;
+        color:#fff;
+    ">
+        <div style="max-width:700px;margin:0 auto;padding:48px 24px 80px;">
+            <!-- Header -->
+            <div style="text-align:center;margin-bottom:40px;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;">
+                    <svg viewBox="0 0 24 24" width="36" height="36"><path fill="#1DB954" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66.25 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.6-.12-.421.18-.78.6-.899 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.241 1.08zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56z"/></svg>
+                    <span style="font-size:26px;font-weight:700;">Esplotify</span>
+                </div>
+                <!-- Step indicator -->
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#1DB954;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">✓</div>
+                    <div style="width:48px;height:2px;background:#1DB954;"></div>
+                    <div style="width:28px;height:28px;border-radius:50%;background:#1DB954;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">2</div>
+                    <div style="width:48px;height:2px;background:#333;"></div>
+                    <div style="width:28px;height:28px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#999;">3</div>
+                </div>
+                <h1 style="font-size:28px;font-weight:700;margin-bottom:10px;">¿Qué música te gusta?</h1>
+                <p style="color:#b3b3b3;font-size:15px;">Elige al menos <strong style="color:#fff;">3 géneros</strong> para personalizar tus listas. Puedes cambiarlos después.</p>
+            </div>
+
+            <!-- Genre grid -->
+            <div id="genreGrid" style="
+                display:grid;
+                grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+                gap:12px;
+                margin-bottom:40px;
+            "></div>
+
+            <!-- Counter + CTA -->
+            <div style="text-align:center;position:sticky;bottom:0;padding:16px 0;">
+                <p id="genreCounter" style="color:#b3b3b3;font-size:14px;margin-bottom:14px;">Selecciona al menos 3 géneros</p>
+                <button id="genreContinueBtn" disabled style="
+                    background:#1DB954;color:#000;border:none;
+                    border-radius:50px;padding:14px 56px;
+                    font-size:16px;font-weight:700;cursor:pointer;
+                    opacity:0.35;transition:opacity .2s,transform .1s;
+                " onclick="finishOnboarding()">Empezar a escuchar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Genre data ──────────────────────────────────────────────────────────────
+    const ONBOARDING_GENRES = [
+        { name:'Pop',          icon:'🎵', color:'#E8115B', query:'pop hits 2025' },
+        { name:'Hip-Hop',      icon:'🎤', color:'#DC148C', query:'hip hop hits' },
+        { name:'Reggaetón',    icon:'🔥', color:'#8D67AB', query:'reggaeton 2025' },
+        { name:'Rock',         icon:'🎸', color:'#E91429', query:'rock classic' },
+        { name:'Electrónica',  icon:'🎧', color:'#1E3264', query:'electronic dance music' },
+        { name:'R&B',          icon:'🎷', color:'#503750', query:'rnb soul hits' },
+        { name:'Indie',        icon:'🎶', color:'#477D95', query:'indie alternative' },
+        { name:'Latino',       icon:'💃', color:'#DF4E12', query:'latin pop hits' },
+        { name:'Trap',         icon:'🌀', color:'#2D2D2D', query:'trap music hits' },
+        { name:'K-Pop',        icon:'⭐', color:'#FF5DA0', query:'kpop hits' },
+        { name:'Soul',         icon:'🕊️', color:'#1B6B50', query:'soul classic hits' },
+        { name:'Jazz',         icon:'🎺', color:'#0A4A3A', query:'jazz music' },
+        { name:'Clásica',      icon:'🎻', color:'#3D3D3D', query:'classical music' },
+        { name:'Metal',        icon:'🤘', color:'#1A1A1A', query:'heavy metal' },
+        { name:'Country',      icon:'🤠', color:'#8B5E3C', query:'country music hits' },
+        { name:'Flamenco',     icon:'💫', color:'#9A1B1B', query:'flamenco español' },
+        { name:'Funk',         icon:'🕺', color:'#4A2080', query:'funk music' },
+        { name:'Afrobeat',     icon:'🌍', color:'#2E6B2E', query:'afrobeats hits' },
+        { name:'Bolero',       icon:'🌹', color:'#6B1E3E', query:'bolero romantico' },
+        { name:'Punk',         icon:'⚡', color:'#1C1C1C', query:'punk rock' },
+    ];
+
+    const selectedGenres = new Set();
+
+    // Build grid
+    const grid = document.getElementById('genreGrid');
+    ONBOARDING_GENRES.forEach(g => {
+        const card = document.createElement('div');
+        card.dataset.query = g.query;
+        card.style.cssText = `
+            background:${g.color};border-radius:8px;padding:20px 14px;
+            cursor:pointer;user-select:none;position:relative;overflow:hidden;
+            transition:transform .15s,box-shadow .15s;min-height:90px;
+            display:flex;flex-direction:column;justify-content:space-between;
+        `;
+        card.innerHTML = `
+            <span style="font-size:13px;font-weight:700;line-height:1.3;">${g.name}</span>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+                <span style="font-size:28px;">${g.icon}</span>
+                <span class="genre-check" style="
+                    width:22px;height:22px;border-radius:50%;background:#1DB954;
+                    display:none;align-items:center;justify-content:center;
+                    font-size:13px;flex-shrink:0;
+                ">✓</span>
+            </div>
+        `;
+        card.addEventListener('click', () => toggleGenre(card, g));
+        card.addEventListener('mouseenter', () => { card.style.transform='scale(1.04)'; card.style.boxShadow='0 4px 20px rgba(0,0,0,.5)'; });
+        card.addEventListener('mouseleave', () => { card.style.transform='scale(1)'; card.style.boxShadow='none'; });
+        grid.appendChild(card);
+    });
+
+    function toggleGenre(card, g) {
+        if (selectedGenres.has(g.query)) {
+            selectedGenres.delete(g.query);
+            card.style.outline = 'none';
+            card.style.opacity = '1';
+            card.querySelector('.genre-check').style.display = 'none';
+        } else {
+            selectedGenres.add(g.query);
+            card.style.outline = '3px solid #1DB954';
+            card.style.opacity = '1';
+            card.querySelector('.genre-check').style.display = 'flex';
+        }
+        updateCounter();
+    }
+
+    function updateCounter() {
+        const n = selectedGenres.size;
+        const counter = document.getElementById('genreCounter');
+        const btn = document.getElementById('genreContinueBtn');
+        if (n < 3) {
+            counter.textContent = `Selecciona al menos ${3 - n} género${3 - n === 1 ? '' : 's'} más`;
+            btn.disabled = true;
+            btn.style.opacity = '0.35';
+        } else {
+            counter.textContent = `${n} género${n > 1 ? 's' : ''} seleccionado${n > 1 ? 's' : ''} ✓`;
+            counter.style.color = '#1DB954';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    function showGenreOnboarding() {
+        document.getElementById('genreOnboarding').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('genreOnboarding').style.overflow = 'auto';
+    }
+
+    function finishOnboarding() {
+        if (selectedGenres.size < 3) return;
+        // Save genre preferences to localStorage
+        localStorage.setItem('userGenrePrefs', JSON.stringify([...selectedGenres]));
+        window.location.href = 'index.html';
+    }
+
+    // ── Registration form submit ────────────────────────────────────────────────
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const confirmEmail = document.getElementById('confirmEmail').value;
+            const password = document.getElementById('password').value;
+            const day = document.getElementById('day').value;
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            const gender = document.querySelector('input[name="gender"]:checked')?.value;
+            const marketing = document.getElementById('marketing').checked;
+            const terms = document.getElementById('terms').checked;
+            const messageDiv = document.getElementById('message');
+
+            // Validar que los emails coincidan
+            if (email !== confirmEmail) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Los correos electrónicos no coinciden';
+                return;
+            }
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        day,
+                        month,
+                        year,
+                        gender,
+                        marketing,
+                        terms
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Nuevo usuario — limpiar cualquier caché del usuario anterior
+                    const keysToRemove = ['madeForYouPlaylists', 'likedSongs', 'likedSongsPlaylist', 'recentlyPlayed', 'recientesPlaylistId', 'lastUserId', 'userGenrePrefs'];
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    // Guardar token y datos del usuario
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('lastUserId', String(data.user.id ?? data.user.username));
+
+                    // Show genre onboarding instead of redirecting immediately
+                    showGenreOnboarding();
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.error || 'Error en el registro';
+                }
+            } catch (error) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Error de conexión';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+﻿/* =============================================
+   SONG ACTIONS � Heart + 3-dot menu (Spotify style)
+   ============================================= */
+
+/* Container that holds heart + more-btn, shown on row hover */
+.song-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    flex-shrink: 0;
+}
+/* remove-song-btn dentro de song-actions hereda la visibilidad del padre */
+.song-actions .remove-song-btn { opacity: 1; }
+
+.popular-song-item:hover .song-actions,
+.top-song-row:hover .song-actions,
+.popular-song-item.playing .song-actions {
+    opacity: 1;
+}
+
+/* Heart button */
+.song-like-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b3b3b3;
+    transition: color 0.15s ease, transform 0.1s ease;
+}
+.song-like-btn:hover { color: #ffffff; transform: scale(1.1); }
+.song-like-btn.liked { color: #1DB954; }
+.song-like-btn.liked:hover { color: #1ed760; }
+
+/* 3-dot more button */
+.song-more-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b3b3b3;
+    transition: color 0.15s ease;
+}
+.song-more-btn:hover { color: #ffffff; }
+
+/* Context menu */
+.song-context-menu {
+    position: fixed;
+    z-index: 9999;
+    background: #282828;
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 220px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    animation: scm-in 0.12s ease;
+}
+@keyframes scm-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.scm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #ffffff;
+    transition: background 0.1s ease;
+}
+.scm-item:hover { background: rgba(255,255,255,0.1); }
+.scm-item svg { flex-shrink: 0; opacity: 0.7; }
+.scm-separator {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 4px 0;
+}
+.scm-danger { color: #f15e6c; }
+
+/* Make rows not clip the actions column */
+.popular-song-item { padding-right: 8px; }
+.top-song-row { padding-right: 8px; }
+
+/* =============================================
+   LIKED SONGS — Tarjeta y vista
+   ============================================= */
+
+/* Tarjeta en la biblioteca */
+.playlist-card.liked-songs-card {
+    background: linear-gradient(135deg, #450af5 0%, #8e8ee5 100%);
+    cursor: pointer;
+}
+.playlist-card.liked-songs-card:hover {
+    background: linear-gradient(135deg, #5a1fff 0%, #a0a0f0 100%);
+}
+.liked-songs-cover {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #450af5, #c4efd9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.liked-songs-cover svg { width: 32px; height: 32px; opacity: 0.9; }
+
+/* Header de la vista de liked songs */
+.liked-songs-header {
+    background: linear-gradient(135deg, #450af5 0%, #8e8ee5 60%, #c4efd9 100%) !important;
+    background-image: none !important;
+    min-height: 280px;
+}
+.liked-songs-header .artist-header-overlay {
+    background: linear-gradient(to bottom, rgba(69,10,245,0.3) 0%, rgba(0,0,0,0.5) 100%) !important;
+}
+.liked-songs-header .artist-header-content {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+}
+.liked-songs-header-icon {
+    width: 160px;
+    height: 160px;
+    min-width: 160px;
+    background: linear-gradient(135deg, #450af5, #8e8ee5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+}
+.liked-songs-header .artist-header-text {
+    flex: 1;
+}
+@media (max-width: 600px) {
+    .liked-songs-header-icon { width: 100px; height: 100px; min-width: 100px; }
+    .liked-songs-header-icon svg { width: 48px; height: 48px; }
+}
+
+/* Botón shuffle en la barra de controles */
+.shuffle-liked-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #b3b3b3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    transition: color 0.15s ease, transform 0.1s ease;
+}
+.shuffle-liked-btn:hover { color: #ffffff; transform: scale(1.1); }
+
