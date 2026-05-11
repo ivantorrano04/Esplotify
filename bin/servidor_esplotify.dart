@@ -570,7 +570,15 @@
         .trim();
 
     final artist     = rawArtist.trim();
-    final title      = _cleanTitle(rawTitle);
+    // Limpiar el título: quitar ruido de YouTube y el prefijo "Artista - " si está presente
+    final titleCleaned = _cleanTitle(rawTitle);
+    // Si el título empieza por "Artista - Cancion", quitar el prefijo "Artista - "
+    final artistPrefix = artist.isNotEmpty
+        ? RegExp('^${RegExp.escape(artist)}\\s*[-–]\\s*', caseSensitive: false)
+        : null;
+    final title = (artistPrefix != null && artistPrefix.hasMatch(titleCleaned))
+        ? titleCleaned.replaceFirst(artistPrefix, '').trim()
+        : titleCleaned;
 
     // ── 1. Try LRCLIB (synced > plain) ──────────────────────────────────────
     if (artist.isNotEmpty || title.isNotEmpty) {

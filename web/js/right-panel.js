@@ -134,6 +134,15 @@
                     renderQueue();
                 } else if (isLyrics && currentSong && lyricsLoaded !== currentSong.id) {
                     loadAndDisplayLyrics(currentSong.id, currentSong.title, currentSong.author);
+                } else if (isLyrics && currentSong && lyricsLoaded === currentSong.id) {
+                    // Letras ya cargadas: actualizar línea activa y hacer scroll a la posición actual
+                    const currentAudio = getCurrentAudio();
+                    const nowTime = currentAudio ? currentAudio.currentTime : 0;
+                    updateLyrics(nowTime);
+                    // Forzar el scroll aunque currentLyricIndex no haya cambiado
+                    if (currentLyricIndex >= 0) {
+                        setTimeout(() => scrollToLyric(currentLyricIndex), 50);
+                    }
                 } else if (isNowPlaying) {
                     renderNowPlaying();
                 }
