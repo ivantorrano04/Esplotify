@@ -24,6 +24,7 @@ class SearchClient {
     return VideoSearchList(
       page.searchContent
           .whereType<SearchVideo>()
+          .where((e) => e.channelId != null && e.channelId.isNotEmpty)
           .map(
             (e) => Video(
               e.id,
