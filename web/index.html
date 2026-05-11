@@ -643,6 +643,17 @@
 
         <!-- Lyrics Pane -->
         <div class="rp-pane rp-pane--hidden" id="rpLyricsPane">
+            <div class="lyrics-offset-bar">
+                <span class="lyrics-offset-label">Sincronización</span>
+                <div class="lyrics-offset-controls">
+                    <button class="lyrics-offset-btn" data-delta="-5">−5s</button>
+                    <button class="lyrics-offset-btn" data-delta="-1">−1s</button>
+                    <span class="lyrics-offset-value" id="lyricsOffsetValue">0s</span>
+                    <button class="lyrics-offset-btn" data-delta="1">+1s</button>
+                    <button class="lyrics-offset-btn" data-delta="5">+5s</button>
+                    <button class="lyrics-offset-reset" id="lyricsOffsetReset" title="Resetear sincronización">↺</button>
+                </div>
+            </div>
             <div class="lyrics-content">
                 <div class="lyrics-text" id="lyricsText">
                     <!-- poblado por JS -->

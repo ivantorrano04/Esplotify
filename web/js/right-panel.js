@@ -26,14 +26,18 @@
         let currentLyricIndex = -1;
         let isLyricsPanelOpen = false;
         let lyricsAutoScroll = true;
+        let lyricsOffset = 0; // segundos de retraso para compensar intros del video
 
         function updateLyrics(currentTime) {
             if (!currentLyrics || !currentLyrics.length) return;
 
-            // Reverse scan: find the last line whose timestamp <= currentTime
+            // Ajustar el tiempo con el offset de sincronización (compensar intro del video)
+            const adjustedTime = currentTime - lyricsOffset;
+
+            // Reverse scan: find the last line whose timestamp <= adjustedTime
             let newIndex = -1;
             for (let i = currentLyrics.length - 1; i >= 0; i--) {
-                if (currentTime >= currentLyrics[i].time) {
+                if (adjustedTime >= currentLyrics[i].time) {
                     newIndex = i;
                     break;
                 }
@@ -107,8 +111,7 @@
                 currentLyrics = [];
                 currentLyricIndex = -1;
                 isLyricsPanelOpen = false;
-                lyricsLoaded = null;
-            }
+                lyricsLoaded = null;                    lyricsOffset = 0;            }
 
             function switchTab(tab) {
                 activeTab = tab;
@@ -487,6 +490,11 @@
             async function loadAndDisplayLyrics(songId, songTitle, artist) {
                 const lyricsText = document.getElementById('lyricsText');
                 if (!lyricsText) return;
+
+                // Cargar offset guardado para esta canción
+                lyricsOffset = parseInt(localStorage.getItem(`lyricsOffset_${songId}`) || '0');
+                updateOffsetDisplay();
+
                 lyricsText.innerHTML = '<div class="lyrics-line" style="opacity:0.5;font-size:18px;">Cargando letra…</div>';
                 try {
                     const params = new URLSearchParams({ id: songId });
@@ -533,7 +541,8 @@
                             el.addEventListener('click', () => {
                                 const currentAudio = getCurrentAudio();
                                 if (currentAudio && el.dataset.time) {
-                                    currentAudio.currentTime = parseInt(el.dataset.time);
+                                    // Saltar al tiempo de la línea ajustado por el offset
+                                    currentAudio.currentTime = parseInt(el.dataset.time) + lyricsOffset;
                                     highlightCurrentLyric(parseInt(el.dataset.index));
                                     scrollToLyricInPanel(parseInt(el.dataset.index));
                                 }
@@ -569,6 +578,30 @@
                 container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
             }
 
+            function updateOffsetDisplay() {
+                const valueEl = document.getElementById('lyricsOffsetValue');
+                if (!valueEl) return;
+                const s = lyricsOffset;
+                valueEl.textContent = s === 0 ? '0s' : (s > 0 ? `+${s}s` : `${s}s`);
+                valueEl.classList.toggle('at-zero', s === 0);
+            }
+
+            function applyOffsetDelta(delta) {
+                lyricsOffset += delta;
+                const song = getCurrentSong();
+                if (song) localStorage.setItem(`lyricsOffset_${song.id}`, lyricsOffset);
+                updateOffsetDisplay();
+                // Re-evaluar línea activa inmediatamente
+                const audio = getCurrentAudio();
+                if (audio) {
+                    const prevIndex = currentLyricIndex;
+                    currentLyricIndex = -1; // forzar re-evaluación
+                    updateLyrics(audio.currentTime);
+                    if (currentLyricIndex < 0) currentLyricIndex = prevIndex; // restaurar si no cambió
+                    if (currentLyricIndex >= 0 && lyricsAutoScroll) scrollToLyricInPanel(currentLyricIndex);
+                }
+            }
+
             queueBtn && queueBtn.addEventListener('click', () => {
                 if (isOpen && activeTab === 'queue') closePanel();
                 else openPanel('queue');
@@ -594,6 +627,25 @@
             rpTabLyrics     && rpTabLyrics.addEventListener('click', () => switchTab('lyrics'));
             rpTabNowPlaying && rpTabNowPlaying.addEventListener('click', () => switchTab('nowplaying'));
             rpClose && rpClose.addEventListener('click', closePanel);
+
+            // Botones de offset de sincronización de letras
+            document.querySelectorAll('.lyrics-offset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const delta = parseInt(btn.dataset.delta || '0');
+                    if (delta) applyOffsetDelta(delta);
+                });
+            });
+            const offsetResetBtn = document.getElementById('lyricsOffsetReset');
+            offsetResetBtn && offsetResetBtn.addEventListener('click', () => {
+                lyricsOffset = 0;
+                const song = getCurrentSong();
+                if (song) localStorage.removeItem(`lyricsOffset_${song.id}`);
+                updateOffsetDisplay();
+                const audio = getCurrentAudio();
+                if (audio) { currentLyricIndex = -1; updateLyrics(audio.currentTime); }
+            });
+
+            updateOffsetDisplay();
 
             window._rpScrollToLyric = scrollToLyricInPanel;
             window._rpRenderNowPlaying = renderNowPlaying;
