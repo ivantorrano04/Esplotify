@@ -852,6 +852,50 @@
     100% { transform: scaleY(1); }
 }
 
+/* ── Botón de 3 puntos en playlist-item de la sidebar ─────── */
+.sidebar-pl-more-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 4px 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, background 0.15s;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.playlist-item:hover .sidebar-pl-more-btn { opacity: 1; }
+.sidebar-pl-more-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+/* Menú contextual para playlists */
+.pl-context-menu {
+    position: fixed;
+    background: #282828;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+    z-index: 10000;
+    min-width: 170px;
+    padding: 4px 0;
+    animation: scmFadeIn 0.1s ease;
+}
+.pl-context-menu-item {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.1s;
+}
+.pl-context-menu-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.pl-context-menu-item.danger { color: #cf6679; }
+.pl-context-menu-item.danger:hover { background: rgba(207,102,121,0.12); color: #e57373; }
+
 /* ── Sidebar library empty state cards ─────────────────────── */
 .sidebar-lib-empty-cards {
     padding: 8px 8px 12px;

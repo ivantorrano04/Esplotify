@@ -41,10 +41,13 @@
         function updateLikeButton() {
             const currentSong = state.getCurrentSong();
             if (!currentSong) return;
-            const path = likeBtn.querySelector('path');
-            if (path) {
-                path.setAttribute('fill', isLiked(currentSong.id) ? '#1DB954' : 'none');
-            }
+            const liked = isLiked(currentSong.id);
+            // Alternar entre corazón vacío (blanco) y relleno (verde)
+            const emptyIcon  = likeBtn.querySelector('.like-icon-empty');
+            const filledIcon = likeBtn.querySelector('.like-icon-filled');
+            if (emptyIcon)  emptyIcon.style.display  = liked ? 'none' : '';
+            if (filledIcon) filledIcon.style.display = liked ? '' : 'none';
+            likeBtn.classList.toggle('liked', liked);
             // Actualiza también el panel "Now Playing" si está disponible
             if (typeof window._rpRenderNowPlaying === 'function') window._rpRenderNowPlaying();
         }

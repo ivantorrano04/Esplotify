@@ -135,6 +135,56 @@
             }
         }
 
+        // Menú contextual flotante para playlists de la barra lateral
+        let _plCtxMenu = null;
+        function showPlaylistContextMenu(playlist, anchorEl) {
+            // Cerrar menú existente si hay uno abierto
+            if (_plCtxMenu) { _plCtxMenu.remove(); _plCtxMenu = null; }
+
+            const menu = document.createElement('div');
+            menu.className = 'pl-context-menu';
+            menu.innerHTML = `
+                <div class="pl-context-menu-item" data-action="open">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+                    <span>Abrir playlist</span>
+                </div>
+                <div class="pl-context-menu-item danger" data-action="delete">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+                    <span>Eliminar playlist</span>
+                </div>
+            `;
+            document.body.appendChild(menu);
+            _plCtxMenu = menu;
+
+            // Posicionar cerca del botón de 3 puntos
+            const rect = anchorEl.getBoundingClientRect();
+            let top = rect.bottom + 4;
+            let left = rect.left - menu.offsetWidth + rect.width;
+            if (top + 120 > window.innerHeight) top = rect.top - 120;
+            if (left < 8) left = 8;
+            menu.style.top  = top  + 'px';
+            menu.style.left = left + 'px';
+
+            menu.querySelector('[data-action="open"]').addEventListener('click', () => {
+                menu.remove(); _plCtxMenu = null;
+                loadAndDisplayPlaylist(playlist.id, playlist.name);
+            });
+            menu.querySelector('[data-action="delete"]').addEventListener('click', () => {
+                menu.remove(); _plCtxMenu = null;
+                deletePlaylist(playlist.id);
+            });
+
+            // Cerrar al hacer clic fuera
+            setTimeout(() => {
+                document.addEventListener('click', function onOutside(e) {
+                    if (!menu.contains(e.target)) {
+                        menu.remove(); _plCtxMenu = null;
+                        document.removeEventListener('click', onOutside);
+                    }
+                });
+            }, 0);
+        }
+
         function displayPlaylists(playlists) {
             const playlistsList = document.getElementById('playlistsList');
             if (!playlistsList) return;
@@ -167,6 +217,17 @@
                 playlistItem.className = 'playlist-item';
                 playlistItem.dataset.id = playlist.id;
                 playlistItem.dataset.name = playlist.name;
+
+                // Botón de 3 puntos
+                const moreBtn = document.createElement('button');
+                moreBtn.className = 'sidebar-pl-more-btn';
+                moreBtn.title = 'Más opciones';
+                moreBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16"><circle fill="currentColor" cx="12" cy="5" r="2"/><circle fill="currentColor" cx="12" cy="12" r="2"/><circle fill="currentColor" cx="12" cy="19" r="2"/></svg>`;
+                moreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showPlaylistContextMenu(playlist, moreBtn);
+                });
+
                 playlistItem.innerHTML = `
                     <img src="${getPlaylistCover(playlist)}" alt="${playlist.name}" class="sidebar-pl-cover">
                     <div class="sidebar-pl-info">
@@ -179,6 +240,7 @@
                         <div class="sidebar-pl-bar"></div>
                     </div>
                 `;
+                playlistItem.appendChild(moreBtn);
                 playlistItem.addEventListener('click', () => loadAndDisplayPlaylist(playlist.id, playlist.name));
                 playlistsList.appendChild(playlistItem);
             });
