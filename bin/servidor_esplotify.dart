@@ -9,6 +9,24 @@
   import 'package:servidor_esplotify/database.dart';
   import 'package:servidor_esplotify/auth.dart';
 
+  // ─── Log a fichero para diagnóstico en builds empaquetados ──────────────────
+  IOSink? _logSink;
+  void _initLog() {
+    try {
+      final dataDir = (Platform.environment['ESPLOTIFY_DATA_DIR'] ?? '').trim();
+      if (dataDir.isNotEmpty) {
+        final logFile = File('$dataDir/server.log');
+        logFile.parent.createSync(recursive: true);
+        _logSink = logFile.openWrite(mode: FileMode.append);
+      }
+    } catch (_) {}
+  }
+  void _log(String msg) {
+    final line = '[${DateTime.now().toIso8601String()}] $msg';
+    print(line);
+    try { _logSink?.writeln(line); } catch (_) {}
+  }
+
   // Instancia global reutilizable de YoutubeExplode (una sola, no por petición)
   final yt = YoutubeExplode();
 
@@ -856,9 +874,9 @@
         }
       }), headers: {'Content-Type': 'application/json'}));
 
-    } catch (e) {
-      print('Error en registro: $e');
-      return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+    } catch (e, st) {
+      _log('Error en registro: $e\n$st');
+      return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno: $e'}), headers: {'Content-Type': 'application/json'}));
     }
   }
 
@@ -895,9 +913,9 @@
         }
       }), headers: {'Content-Type': 'application/json'}));
 
-    } catch (e) {
-      print('Error en login: $e');
-      return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno del servidor'})));
+    } catch (e, st) {
+      _log('Error en login: $e\n$st');
+      return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error interno: $e'}), headers: {'Content-Type': 'application/json'}));
     }
   }
 
@@ -1521,6 +1539,11 @@
   }
 
   void main(List<String> args) async {
+    _initLog();
+    _log('Servidor iniciando...');
+    _log('Exe: ${Platform.resolvedExecutable}');
+    _log('ESPLOTIFY_DATA_DIR: ${Platform.environment['ESPLOTIFY_DATA_DIR'] ?? '(no definido)'}');
+
     final router = Router()
       ..get('/search', _search)
       ..get('/artist', _artist)

@@ -1,4 +1,5 @@
 ﻿import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
@@ -90,6 +91,22 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
+    // En Windows, pre-cargar sqlite3.dll desde el directorio del ejecutable usando dart:ffi.
+    // Esto garantiza que cuando sqflite_common_ffi intente abrir la biblioteca,
+    // ya esté en memoria y Windows devuelva el handle existente.
+    if (Platform.isWindows) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      for (final name in ['sqlite3.dll', 'libsqlite3.dll']) {
+        final dllPath = '$exeDir\\$name';
+        if (File(dllPath).existsSync()) {
+          try {
+            DynamicLibrary.open(dllPath);
+          } catch (_) {}
+          break;
+        }
+      }
+    }
+
     sqfliteFfiInit();
     final databaseFactory = databaseFactoryFfi;
 
