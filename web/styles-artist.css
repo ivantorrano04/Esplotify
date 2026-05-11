@@ -123,7 +123,7 @@
 
 .artist-song-row {
     display: grid;
-    grid-template-columns: 24px 36px 1fr auto auto;
+    grid-template-columns: 24px 36px 1fr auto auto auto;
     align-items: center;
     gap: 12px;
     padding: 6px 8px;
@@ -186,6 +186,9 @@
 }
 .artist-song-row:hover .song-row-like { opacity: 1; }
 .song-row-like:hover { transform: scale(1.1); }
+/* Menú 3 puntos en filas de artista */
+.artist-song-row .song-actions { opacity: 0; transition: opacity 0.15s; }
+.artist-song-row:hover .song-actions { opacity: 1; }
 .song-row-duration {
     font-size: 13px;
     color: #a7a7a7;
