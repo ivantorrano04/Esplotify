@@ -1107,6 +1107,20 @@ window.playSongAtIndex = async function playSongAtIndex(index) {
             addToPlaylistBtn.style.display = 'none';
             addToPlaylistBtn.onclick = null;
         }
+
+        // Auto-rellenar cola con canciones similares si quedan pocas por delante
+        // (no aplica si se viene de un álbum o playlist con contenido suficiente)
+        if (playlist.length - currentIndex <= 2) {
+            autoFillRelatedQueue(song);
+        }
+
+        // Precargar letras en segundo plano para que estén listas al abrir el panel
+        setTimeout(() => {
+            if (typeof window._rpPreloadLyrics === 'function') {
+                window._rpPreloadLyrics(song.id, song.title, song.author);
+            }
+        }, 1500); // Pequeño delay para no bloquear la carga del audio
+
     } catch (err) {
         isLoading = false;
         console.error('Error:', err);
