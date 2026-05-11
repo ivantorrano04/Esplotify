@@ -22,6 +22,13 @@
             const msg = document.getElementById('createPlaylistMessage');
             if (!modal) return;
 
+            // Limpiar listener anterior ANTES de añadir uno nuevo
+            // Evita que se acumulen listeners si el modal se abre varias veces
+            if (modal._cleanupKeydown) {
+                modal._cleanupKeydown();
+                delete modal._cleanupKeydown;
+            }
+
             if (input) input.value = '';
             const descEl = document.getElementById('playlistDescInput');
             if (descEl) descEl.value = '';
@@ -114,6 +121,7 @@
                 }
 
                 const playlistData = {
+                    playlistId: playlistId,  // Bug D fix: pasar el ID para poder eliminar canciones
                     playlistName: result.playlist.name || playlistNameFallback || 'Sin nombre',
                     songs: result.songs,
                     owner: 'Tu',
