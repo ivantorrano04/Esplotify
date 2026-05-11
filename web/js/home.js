@@ -900,7 +900,16 @@
             const backBtn = document.createElement('button');
             backBtn.className = 'back-button';
             backBtn.textContent = '← Volver';
-            backBtn.onclick = () => { window._openMFYPlaylistId = null; playlistView.style.display = 'none'; document.getElementById('homeView').style.display = 'block'; };
+            backBtn.onclick = () => { 
+                window._openMFYPlaylistId = null; 
+                playlistView.style.display = 'none'; 
+                // Usa showHomeView para re-renderizar las tarjetas y evitar pantalla negra
+                if (typeof window.showHomeView === 'function') {
+                    window.showHomeView();
+                } else {
+                    document.getElementById('homeView').style.display = 'block'; 
+                }
+            };
             playlistView.appendChild(backBtn);
 
             const header = document.createElement('div');
