@@ -359,50 +359,60 @@
       return Response(400, body: 'Falta el parámetro name');
     }
 
-    try {
-      final searchQuery = '$artistName music';
-      final results = await yt.search.search(searchQuery);
-      // Solo instancias Video con título no vacío
-      final validResults = results.whereType<Video>().where((v) => v.title.isNotEmpty && v.duration != null).toList();
+    // Reintentos para el caso de errores transitorios de la API de YouTube
+    const maxRetries = 2;
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final searchQuery = '$artistName music';
+        final results = await yt.search.search(searchQuery);
+        // Solo instancias Video con título no vacío
+        final validResults = results.whereType<Video>().where((v) => v.title.isNotEmpty && v.duration != null).toList();
 
-      final artistLower = artistName.toLowerCase();
-      final artistSongs = validResults
-          .where((video) {
-            final authorLower = (video.author ?? '').toLowerCase();
-            return authorLower.contains(artistLower) || artistLower.contains(authorLower);
-          })
-          .where((video) => video.duration != null)
-          .where((video) =>
-              (video.duration!.inSeconds) >= 120 &&
-              (video.duration!.inSeconds) <= 600)
-          .take(20)
-          .map((v) => {
-                'id': v.id.value ?? '',
-                'title': v.title ?? '',
-                'author': v.author ?? '',
-                'duration': v.duration?.inSeconds ?? 0,
-                'thumbnail': v.thumbnails.highResUrl ?? v.thumbnails.standardResUrl ?? v.thumbnails.mediumResUrl ?? v.thumbnails.lowResUrl ?? '',
-                'uploadDate': v.uploadDate?.toIso8601String() ?? '',
-                'viewCount': v.engagement?.viewCount ?? 0,
-              })
-          .toList();
+        final artistLower = artistName.toLowerCase();
+        final artistSongs = validResults
+            .where((video) {
+              final authorLower = (video.author ?? '').toLowerCase();
+              return authorLower.contains(artistLower) || artistLower.contains(authorLower);
+            })
+            .where((video) => video.duration != null)
+            .where((video) =>
+                (video.duration!.inSeconds) >= 120 &&
+                (video.duration!.inSeconds) <= 600)
+            .take(20)
+            .map((v) => {
+                  'id': v.id.value ?? '',
+                  'title': v.title ?? '',
+                  'author': v.author ?? '',
+                  'duration': v.duration?.inSeconds ?? 0,
+                  'thumbnail': v.thumbnails.highResUrl ?? v.thumbnails.standardResUrl ?? v.thumbnails.mediumResUrl ?? v.thumbnails.lowResUrl ?? '',
+                  'uploadDate': v.uploadDate?.toIso8601String() ?? '',
+                  'viewCount': v.engagement?.viewCount ?? 0,
+                })
+            .toList();
 
-      final topSongs = artistSongs.take(15).toList();
+        final topSongs = artistSongs.take(15).toList();
 
-      final artistData = {
-        'artist': artistName,
-        'totalSongs': topSongs.length,
-        'songs': topSongs,
-      };
+        final artistData = {
+          'artist': artistName,
+          'totalSongs': topSongs.length,
+          'songs': topSongs,
+        };
 
-      return _cors(Response.ok(jsonEncode(artistData), headers: {'Content-Type': 'application/json'}));
-    } catch (e, stack) {
-      // Loguear la excepción y su stack para ayudar a depurar casos concretos
-      print('Error obteniendo artista "$artistName": $e');
-      print(stack);
-      return _cors(Response.internalServerError(
-          body: jsonEncode({'error': 'Error obteniendo información del artista: $e'})));
+        return _cors(Response.ok(jsonEncode(artistData), headers: {'Content-Type': 'application/json'}));
+      } catch (e, stack) {
+        print('Error obteniendo artista "$artistName" (intento ${attempt + 1}/${ maxRetries + 1}): $e');
+        if (attempt < maxRetries) {
+          // Espera corta antes de reintentar (500ms)
+          await Future.delayed(const Duration(milliseconds: 500));
+          continue;
+        }
+        print(stack);
+        return _cors(Response.internalServerError(
+            body: jsonEncode({'error': 'Error obteniendo información del artista: $e'})));
+      }
     }
+    // Nunca llega aquí, pero Dart requiere un return
+    return _cors(Response.internalServerError(body: jsonEncode({'error': 'Error inesperado'})));
   }
 
   int _estimateMonthlyListeners(int? subscribers, int topViews, int songsCount) {
