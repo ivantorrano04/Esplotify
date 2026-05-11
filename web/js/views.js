@@ -150,6 +150,18 @@
         async function openAlbumView(playlistId, title, thumbnail) {
             if (!playlistId) return;
             window._isSearchPlaylist = false;  // Flag para indicar que no es una búsqueda
+
+            // Detectar desde qué vista se abre el álbum para que el botón volver funcione bien
+            const _homeViewEl = document.getElementById('homeView');
+            const _plViewEl   = document.getElementById('playlistView');
+            if (_homeViewEl && _homeViewEl.style.display === 'block') {
+                window._albumOriginView = 'home';
+            } else if (_plViewEl && _plViewEl.style.display === 'block') {
+                window._albumOriginView = 'playlist';
+            } else {
+                window._albumOriginView = 'search';
+            }
+
             showSearchView();
             const genreTiles = document.getElementById('genreTiles');
             if (genreTiles) genreTiles.style.display = 'none';
