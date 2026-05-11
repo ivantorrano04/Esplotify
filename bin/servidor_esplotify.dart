@@ -365,8 +365,18 @@
       try {
         final searchQuery = '$artistName music';
         final results = await yt.search.search(searchQuery);
-        // Solo instancias Video con título no vacío
-        final validResults = results.whereType<Video>().where((v) => v.title.isNotEmpty && v.duration != null).toList();
+        // Iterar manualmente para capturar errores por elemento
+        // (algunos resultados tienen channelId vacío que lanza InvalidArgument)
+        final validResults = <Video>[];
+        for (final result in results) {
+          try {
+            if (result is Video && result.title.isNotEmpty && result.duration != null) {
+              validResults.add(result);
+            }
+          } catch (_) {
+            // Ignorar resultados con datos inválidos (ej: channelId vacío)
+          }
+        }
 
         final artistLower = artistName.toLowerCase();
         final artistSongs = validResults
