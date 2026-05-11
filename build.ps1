@@ -17,8 +17,10 @@ foreach ($cmd in 'dart', 'node', 'npm') {
 }
 
 $res = Join-Path $PSScriptRoot "electron\resources"
+$lib = Join-Path $PSScriptRoot "electron\lib"
 New-Item -ItemType Directory -Force -Path $res | Out-Null
 New-Item -ItemType Directory -Force -Path "$res\data" | Out-Null
+New-Item -ItemType Directory -Force -Path $lib | Out-Null
 
 Write-Host "[1/5] Compilando servidor Dart..." -ForegroundColor Yellow
 dart build cli
@@ -29,10 +31,11 @@ if (-not (Test-Path $builtExe)) {
 }
 $serverExe = Join-Path $res "esplotify-server.exe"
 Copy-Item $builtExe $serverExe -Force
-# Copiar DLLs nativas del bundle (sqflite, etc.)
+# Copiar DLLs nativas del bundle a electron/lib/ (ruta esperada: ../lib/ relativo al exe)
+# El codigo generado por Dart native assets carga DLLs desde ../lib/ relativo al ejecutable
 $bundleLib = Join-Path $PSScriptRoot "build\cli\windows_x64\bundle\lib"
 if (Test-Path $bundleLib) {
-    Get-ChildItem $bundleLib -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName $res -Force }
+    Get-ChildItem $bundleLib -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName $lib -Force }
 }
 Write-Host "      OK: $serverExe" -ForegroundColor Green
 
@@ -43,7 +46,9 @@ Copy-Item -Recurse -Force (Join-Path $PSScriptRoot "web") $webDest
 Write-Host "      OK: $webDest" -ForegroundColor Green
 
 Write-Host "[3/5] Buscando sqlite3.dll..." -ForegroundColor Yellow
-$sqliteDll = Join-Path $res "sqlite3.dll"
+# sqlite3.dll debe ir en electron/lib/ para que quede en resources/lib/ en el paquete
+# El exe generado por Dart native assets busca la DLL en ../lib/ relativo a su ubicacion
+$sqliteDll = Join-Path $lib "sqlite3.dll"
 if (Test-Path $sqliteDll) {
     Write-Host "      OK: ya presente." -ForegroundColor Green
 } else {

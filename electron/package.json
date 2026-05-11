@@ -19,7 +19,10 @@
     "copyright": "Copyright 2026 Esplotify",
     "directories": { "output": "../dist" },
     "files": ["main.js"],
-    "extraResources": [{ "from": "resources/", "to": "server", "filter": ["**/*"] }],
+    "extraResources": [
+      { "from": "resources/", "to": "server", "filter": ["**/*"] },
+      { "from": "lib/", "to": "lib", "filter": ["**/*"] }
+    ],
     "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
     "nsis": {
       "oneClick": false,
