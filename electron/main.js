@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, session } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const net = require('net');
@@ -136,6 +136,10 @@ function createWindow() {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+    // Limpiar caché HTTP de Chromium para que siempre cargue CSS/JS actualizados
+    // sin esto, al actualizar la app el navegador sigue usando versiones cacheadas
+    await session.defaultSession.clearCache();
+
     startServer();
 
     try {
