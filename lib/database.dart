@@ -65,6 +65,24 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
 
+  Future<void> _ensureUsersProfileColumns(Database db) async {
+    final cols = await db.rawQuery("PRAGMA table_info(users)");
+    final names = cols
+        .map((c) => (c['name'] ?? '').toString().toLowerCase())
+        .toSet();
+
+    Future<void> addIfMissing(String name, String sqlTypeAndDefault) async {
+      if (!names.contains(name.toLowerCase())) {
+        await db.execute('ALTER TABLE users ADD COLUMN $name $sqlTypeAndDefault');
+      }
+    }
+
+    await addIfMissing('birthdate', 'TEXT');
+    await addIfMissing('gender', 'TEXT');
+    await addIfMissing('marketing', 'INTEGER DEFAULT 0');
+    await addIfMissing('terms', 'INTEGER DEFAULT 0');
+  }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
@@ -95,9 +113,12 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 8,
+        version: 9,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
+        onOpen: (db) async {
+          await _ensureUsersProfileColumns(db);
+        },
       ),
     );
   }
@@ -318,6 +339,9 @@ class DatabaseHelper {
           UNIQUE(user_id, artist_name)
         )
       ''');
+    }
+    if (oldVersion < 9) {
+      await _ensureUsersProfileColumns(db);
     }
   }
 
