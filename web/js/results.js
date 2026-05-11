@@ -1,3 +1,19 @@
+/**
+ * ========================================
+ * MÓDULO DE RESULTADOS - Renderizado de Búsqueda
+ * ========================================
+ * Propósito: Renderiza los resultados de búsqueda en la vista principal
+ *
+ * Estructura de resultados mostrados:
+ * - "Mejor resultado": tarjeta grande con la primera canción
+ * - "Canciones": lista de las siguientes 5 canciones
+ * - "Más canciones": resto de canciones numeradas
+ * - Otras categorías: listas adicionales agrupadas por categoría
+ * - "Álbumes y listas": cuadrícula de álbumes con portada y título
+ *
+ * Todas las canciones se añaden a una cola de búsqueda local para
+ * permitir navegación secuencial durante la sesión de búsqueda
+ */
 (function () {
     function createResultsModule(deps) {
         const {
@@ -9,15 +25,33 @@
             prefetchSongs,
         } = deps;
 
+        /**
+         * Renderiza todos los resultados de búsqueda categorizados en el DOM
+         * @param {Object} categorizedSongs - Objeto con categorías como claves y arrays de canciones como valores
+         *   Categorías especiales: 'Canciones' (top results) y 'Albums' (cuadrícula)
+         *   Resto de claves se renderizan como secciones adicionales
+         */
         function displayResults(categorizedSongs) {
             resultsDiv.innerHTML = '';
             const searchQueue = [];
 
+            // Cola local de búsqueda: mantiene el orden de reproducción dentro de los resultados
+
+            /**
+             * Añade una canción a la cola de búsqueda local
+             * @param {Object} song - Canción a añadir
+             * @returns {number} Índice asignado en la cola
+             */
             function queueSearchSong(song) {
                 searchQueue.push(song);
                 return searchQueue.length - 1;
             }
 
+            /**
+             * Inicia la reproducción desde la cola de búsqueda en el índice indicado
+             * Marca la sesión como búsqueda activa para mantener el contexto de cola
+             * @param {number} i - Índice de la canción en la cola de búsqueda
+             */
             function playFromSearchIndex(i) {
                 const selected = searchQueue[i];
                 if (!selected) return;

@@ -1,3 +1,20 @@
+/**
+ * ========================================
+ * MÓDULO DE PLAYLISTS - Gestión de Listas de Reproducción
+ * ========================================
+ * Propósito: Maneja toda la lógica de playlists del usuario
+ *
+ * Funcionalidades:
+ * - Crear playlists con modal y validación (openCreatePlaylistModal / createPlaylist)
+ * - Cargar y mostrar canciones de una playlist (loadAndDisplayPlaylist)
+ * - Eliminar playlists con confirmación (deletePlaylist)
+ * - Añadir canciones a una playlist desde el menú contextual (addToPlaylist)
+ * - Renderizar playlists en la sidebar con botón de 3 puntos (displayPlaylists)
+ * - Menú contextual flotante para acciones rápidas (showPlaylistContextMenu)
+ * - Filtrar playlists en la sidebar por texto (filterSidebarPlaylists)
+ * - Renderizar la vista de biblioteca con cuadrícula de playlists (displayLibrary)
+ * - Cargar todas las playlists del usuario desde el servidor (loadPlaylists)
+ */
 (function () {
     function createPlaylistsModule(deps) {
         const {
@@ -16,6 +33,11 @@
             fetchImpl,
         } = deps;
 
+        /**
+         * Abre el modal de creación de playlist
+         * Limpia campos anteriores y configura atajos de teclado (Enter/Escape)
+         * Evita acumulación de listeners si el modal se abre varias veces
+         */
         function openCreatePlaylistModal() {
             const modal = document.getElementById('createPlaylistModal');
             const input = document.getElementById('playlistNameInput');
@@ -46,6 +68,9 @@
             modal._cleanupKeydown = () => input?.removeEventListener('keydown', onKeydown);
         }
 
+        /**
+         * Cierra el modal de creación de playlist y limpia sus campos y listeners
+         */
         function closeCreatePlaylistModal() {
             const modal = document.getElementById('createPlaylistModal');
             if (!modal) return;
@@ -60,6 +85,11 @@
             }
         }
 
+        /**
+         * Envía la petición al servidor para crear una nueva playlist
+         * Valida que el nombre no esté vacío y requiere token de sesión
+         * Al crearse con éxito, cierra el modal y recarga la vista de biblioteca
+         */
         async function createPlaylist() {
             const name = document.getElementById('playlistNameInput').value.trim();
             if (!name) {
@@ -94,6 +124,12 @@
             }
         }
 
+        /**
+         * Carga las canciones de una playlist desde el servidor y abre la vista de playlist
+         * Hace prefetch de las primeras canciones para carga más rápida al reproducir
+         * @param {number|string} playlistId - ID de la playlist
+         * @param {string} playlistNameFallback - Nombre a mostrar si el servidor no lo devuelve
+         */
         async function loadAndDisplayPlaylist(playlistId, playlistNameFallback) {
             try {
                 const token = localStorage.getItem('token');
@@ -135,8 +171,18 @@
             }
         }
 
-        // Menú contextual flotante para playlists de la barra lateral
+        // ─── Menú contextual flotante para playlists de la sidebar ───────────────
+        // Solo puede haber un menú abierto a la vez; se guarda la referencia aquí
         let _plCtxMenu = null;
+
+        /**
+         * Muestra un menú contextual flotante junto al botón de 3 puntos de una playlist
+         * Opciones: "Abrir playlist" y "Eliminar playlist"
+         * Se posiciona para evitar que se salga de los bordes de la ventana
+         * Se cierra automáticamente al hacer clic fuera del menú
+         * @param {Object} playlist - Objeto playlist con id y name
+         * @param {HTMLElement} anchorEl - Botón de 3 puntos que sirve de referencia de posición
+         */
         function showPlaylistContextMenu(playlist, anchorEl) {
             // Cerrar menú existente si hay uno abierto
             if (_plCtxMenu) { _plCtxMenu.remove(); _plCtxMenu = null; }
@@ -185,6 +231,13 @@
             }, 0);
         }
 
+        /**
+         * Renderiza la lista de playlists en la barra lateral
+         * Siempre incluye "Canciones que te gustan" como primer ítem fijo
+         * Cada playlist tiene su portada, nombre, botón de 3 puntos y animación "Now Playing"
+         * Si no hay playlists, muestra tarjetas de estado vacío con botones de acción
+         * @param {Array} playlists - Array de objetos playlist del usuario
+         */
         function displayPlaylists(playlists) {
             const playlistsList = document.getElementById('playlistsList');
             if (!playlistsList) return;
@@ -270,6 +323,11 @@
             }
         }
 
+        /**
+         * Filtra los ítems de la sidebar mostrando solo los que coinciden con la búsqueda
+         * Oculta ítems que no contienen el texto buscado en su nombre
+         * @param {string} query - Texto a buscar (vacío = mostrar todos)
+         */
         function filterSidebarPlaylists(query) {
             const items = document.querySelectorAll('#playlistsList .playlist-item');
             const q = query.trim().toLowerCase();
@@ -279,6 +337,12 @@
             });
         }
 
+        /**
+         * Renderiza la vista de biblioteca (página principal de playlists)
+         * Muestra una cuadrícula con: "Canciones que te gustan" + todas las playlists del usuario
+         * Cada tarjeta tiene portada, nombre, botón de reproducción y menú de opciones
+         * @param {Array} playlists - Array de objetos playlist del usuario
+         */
         function displayLibrary(playlists) {
             const libraryGrid = document.getElementById('libraryGrid');
             if (!libraryGrid) return;

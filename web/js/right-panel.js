@@ -1,5 +1,22 @@
-// Esplotify Right Panel Module
-// Handles right panel (queue, lyrics, now playing) logic
+/**
+ * ========================================
+ * MÓDULO DEL PANEL DERECHO - Cola, Letras y Now Playing
+ * ========================================
+ * Propósito: Gestiona el panel lateral derecho con tres pestañas
+ *
+ * Pestañas:
+ * - Cola (Queue): lista de canciones pendientes con drag-to-reorder
+ * - Letras (Lyrics): letra sincronizada con control de offset de tiempo
+ * - Now Playing: información detallada de la canción actual con portada,
+ *   estadísticas de Spotify y canción siguiente
+ *
+ * Características:
+ * - Sincronización de letras en tiempo real mediante timeupdate del audio
+ * - Offset de sincronización por canción guardado en localStorage (compensa intros de video)
+ * - Extracción de color dominante de la portada para el fondo degradado del Now Playing
+ * - Cache de insights por canción para evitar peticiones repetidas al servidor
+ * - Reordenación de cola mediante drag & drop
+ */
 // Exports: createRightPanelModule({ ...deps })
 
 (function (global) {
@@ -28,6 +45,12 @@
         let lyricsAutoScroll = true;
         let lyricsOffset = 0; // segundos de retraso para compensar intros del video
 
+        /**
+         * Actualiza la línea de letra activa según el tiempo de reproducción actual
+         * Aplica el offset de sincronización antes de buscar la línea correspondiente
+         * No modifica el DOM si el panel de letras está cerrado (solo actualiza el índice)
+         * @param {number} currentTime - Tiempo actual del audio en segundos
+         */
         function updateLyrics(currentTime) {
             if (!currentLyrics || !currentLyrics.length) return;
 
@@ -52,6 +75,11 @@
             if (lyricsAutoScroll) scrollToLyric(newIndex);
         }
 
+        /**
+         * Aplica clases CSS de resaltado a la línea activa y sus vecinas
+         * Clases: active (actual), lyr-prev1/2 (anteriores), lyr-next1/2 (siguientes)
+         * @param {number} index - Índice de la línea activa (-1 = ninguna)
+         */
         function highlightCurrentLyric(index) {
             const lines = document.querySelectorAll('#lyricsText .lyrics-line');
             lines.forEach((line, i) => {
@@ -66,6 +94,11 @@
             });
         }
 
+        /**
+         * Hace scroll suave en el contenedor de letras para centrar la línea activa
+         * No hace scroll si el auto-scroll está desactivado por el usuario
+         * @param {number} index - Índice de la línea a la que hacer scroll
+         */
         function scrollToLyric(index) {
             const currentLine = document.querySelector(`#lyricsText [data-index="${index}"]`);
             if (!currentLine || !lyricsAutoScroll) return;
@@ -75,6 +108,11 @@
             container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
         }
 
+        /**
+         * Inicializa el panel derecho: obtiene referencias DOM, configura estado interno
+         * y registra todos los event listeners (botones de pestaña, cierre, offset de letras)
+         * Expone funciones al scope global (window._rp*) para uso desde otros módulos
+         */
         function initRightPanel() {
             const panel           = document.getElementById('rightPanel');
             const lyricsBtn       = document.getElementById('lyricsBtn');
@@ -94,6 +132,11 @@
             let activeTab  = 'queue';
             let lyricsLoaded = null;
 
+            /**
+             * Abre el panel derecho mostrando la pestaña indicada
+             * Añade la clase 'rp-open' al contenido principal para reducir su ancho
+             * @param {string} tab - 'queue' | 'lyrics' | 'nowplaying'
+             */
             function openPanel(tab) {
                 isOpen = true;
                 panel.classList.add('show');
@@ -101,6 +144,10 @@
                 switchTab(tab);
             }
 
+            /**
+             * Cierra el panel derecho y resetea todo el estado de letras y sincronización
+             * Elimina marcadores activos de los botones de la barra inferior
+             */
             function closePanel() {
                 isOpen = false;
                 panel.classList.remove('show');
@@ -113,6 +160,12 @@
                 isLyricsPanelOpen = false;
                 lyricsLoaded = null;                    lyricsOffset = 0;            }
 
+            /**
+             * Cambia la pestaña activa del panel sin abrir ni cerrar el panel
+             * Si se cambia a Letras, carga la letra si no estaba cargada o hace scroll a la posición actual
+             * Si se cambia a Now Playing, re-renderiza la vista de canción actual
+             * @param {string} tab - 'queue' | 'lyrics' | 'nowplaying'
+             */
             function switchTab(tab) {
                 activeTab = tab;
                 const isQueue      = tab === 'queue';
@@ -151,6 +204,13 @@
                 }
             }
 
+            /**
+             * Extrae el color dominante de una imagen usando un canvas de 8x8 píxeles
+             * Ignora píxeles muy oscuros o muy claros para obtener un color representativo
+             * Devuelve dos variaciones oscuras del color para el degradado de fondo del Now Playing
+             * @param {HTMLImageElement} imgEl - Elemento de imagen con la portada
+             * @param {function} callback - Se llama con (color1, color2) en formato rgb()
+             */
             function extractDominantColor(imgEl, callback) {
                 try {
                     const canvas = document.createElement('canvas');
@@ -177,6 +237,11 @@
             const _songInsightsCache = new Map();
             let _insightsRequestId = 0;
 
+            /**
+             * Formatea un número grande en formato compacto: 1.2M, 450K, etc.
+             * @param {number|string} value - Número a formatear
+             * @returns {string} Número formateado con sufijo K o M
+             */
             function formatCompactNumber(value) {
                 const n = Number(value) || 0;
                 if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
@@ -184,6 +249,10 @@
                 return String(n);
             }
 
+            /**
+             * Muestra un estado de carga/error en los campos de estadísticas del Now Playing
+             * @param {string} text - Texto a mostrar en el indicador de estado
+             */
             function setInsightsLoadingState(text = 'Cargando') {
                 const stateEl = document.getElementById('npvInsightsState');
                 const playlistsEl = document.getElementById('npvInPlaylists');
@@ -198,6 +267,11 @@
                 if (viewsEl) viewsEl.textContent = '-';
             }
 
+            /**
+             * Rellena los campos de estadísticas del Now Playing con los datos recibidos del servidor
+             * Muestra: playlists donde aparece, featuring, año de publicación, reproducciones
+             * @param {Object} insights - Objeto con estadísticas de la canción
+             */
             function applySongInsights(insights) {
                 const stateEl = document.getElementById('npvInsightsState');
                 const playlistsEl = document.getElementById('npvInPlaylists');
@@ -265,6 +339,12 @@
                 }
             }
 
+            /**
+             * Renderiza la pestaña Now Playing con la canción actualmente en reproducción
+             * Muestra: portada, título, artista, duración, posición en cola, estado y canción siguiente
+             * Aplica color dominante de la portada como fondo degradado
+             * Carga estadísticas de la canción de forma asíncrona (con cache)
+             */
             function renderNowPlaying() {
                 const currentSong = getCurrentSong();
                 const currentIndex = getCurrentIndex();
@@ -287,6 +367,10 @@
                 const npvNextRow       = document.getElementById('npvNextRow');
                 const npvNextSection   = document.getElementById('npvNextSection');
 
+                /**
+                 * Actualiza los metadatos dinámicos del Now Playing: duración, posición en cola y estado
+                 * Se llama tanto al renderizar como periódicamente mientras se reproduce
+                 */
                 function refreshNowPlayingStats() {
                     const songDuration = Number(currentSong && currentSong.duration) || 0;
                     const audioDuration = (currentAudio && Number.isFinite(currentAudio.duration))
@@ -383,6 +467,11 @@
                 refreshNowPlayingStats();
             }
 
+            /**
+             * Renderiza la pestaña de cola de reproducción
+             * Muestra la canción actual con estilo resaltado y la lista de canciones pendientes
+             * Las filas de la cola soportan reordenación por drag & drop
+             */
             function renderQueue() {
                 const currentSong = getCurrentSong();
                 const playlist = getPlaylist();
@@ -464,6 +553,14 @@
                 });
             }
 
+            /**
+             * Genera el HTML de una fila de canción en la cola
+             * Si es la canción actual, no muestra el handle de drag y aplica estilo resaltado
+             * Si no tiene thumbnail, muestra un placeholder con la inicial del título
+             * @param {Object} song - Objeto canción
+             * @param {boolean} isCurrent - Si es la canción en reproducción actual
+             * @returns {string} HTML de la fila
+             */
             function buildQueueRowHTML(song, isCurrent) {
                 const thumb  = song.thumbnail || '';
                 const title  = (song.title || 'Sin título').replace(/</g, '&lt;');
@@ -487,6 +584,15 @@
                     </div>`;
             }
 
+            /**
+             * Carga y muestra la letra de una canción desde el servidor (/lyrics)
+             * Soporta letras LRC (con tiempos) y texto plano (asigna tiempos proporcionales)
+             * Al hacer clic en una línea, salta el audio al tiempo correspondiente
+             * Restaura el offset de sincronización guardado en localStorage para esta canción
+             * @param {string|number} songId - ID de la canción
+             * @param {string} songTitle - Título para búsqueda de letra
+             * @param {string} artist - Artista para búsqueda de letra
+             */
             async function loadAndDisplayLyrics(songId, songTitle, artist) {
                 const lyricsText = document.getElementById('lyricsText');
                 if (!lyricsText) return;
@@ -569,6 +675,10 @@
                 }
             }
 
+            /**
+             * Hace scroll al elemento de letra en el panel (variante interna del panel)
+             * @param {number} index - Índice de la línea de letra
+             */
             function scrollToLyricInPanel(index) {
                 const el = document.querySelector(`#rpLyricsPane [data-index="${index}"]`);
                 if (!el || !lyricsAutoScroll) return;
@@ -578,6 +688,11 @@
                 container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
             }
 
+            /**
+             * Actualiza el texto del indicador de offset de sincronización de letras
+             * Muestra: '0s' (gris), '+Xs' (verde) o '-Xs' (verde) según el valor actual
+             * Añade clase 'at-zero' cuando el offset es 0 para colorear en gris
+             */
             function updateOffsetDisplay() {
                 const valueEl = document.getElementById('lyricsOffsetValue');
                 if (!valueEl) return;
@@ -586,6 +701,12 @@
                 valueEl.classList.toggle('at-zero', s === 0);
             }
 
+            /**
+             * Modifica el offset de sincronización de letras en delta segundos
+             * Guarda el nuevo valor en localStorage con clave lyricsOffset_{songId}
+             * Re-evalúa inmediatamente la línea activa con el nuevo offset
+             * @param {number} delta - Segundos a añadir (positivo) o restar (negativo)
+             */
             function applyOffsetDelta(delta) {
                 lyricsOffset += delta;
                 const song = getCurrentSong();

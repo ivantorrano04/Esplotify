@@ -1,3 +1,17 @@
+/**
+ * ========================================
+ * MÓDULO DE INTERFAZ - Componentes de UI
+ * ========================================
+ * Propósito: Construye y gestiona los componentes de interfaz reutilizables
+ *
+ * Funcionalidades:
+ * - Toast de notificación temporal (showToast)
+ * - Portada de playlist con fallback SVG (getPlaylistCover)
+ * - Prefetch de canciones para carga anticipada (prefetchSongs)
+ * - Menú contextual de canción con 3 puntos (showSongContextMenu)
+ * - Botones de acción por canción: like y más opciones (buildSongActions)
+ * - Bindings globales de UI: biblioteca, filtros, sidebar, scroll (initUiBindings)
+ */
 (function () {
     function createUiModule(deps) {
         const {
@@ -18,8 +32,14 @@
             fetchImpl,
         } = deps;
 
+        // Canción sobre la que se abrió el menú contextual (3 puntos)
         let scmSong = null;
 
+        /**
+         * Muestra una notificación temporal en la parte inferior de la pantalla
+         * Desaparece automáticamente después de 2.5 segundos
+         * @param {string} message - Texto a mostrar
+         */
         function showToast(message) {
             let t = document.getElementById('esplotifyToast');
             if (!t) {
@@ -34,6 +54,12 @@
             t._timeout = setTimeout(() => { t.style.opacity = '0'; }, 2500);
         }
 
+        /**
+         * Genera la URL de portada de una playlist
+         * Si no tiene cover, genera un SVG con la inicial del nombre como fallback
+         * @param {Object} playlist - Objeto playlist
+         * @returns {string} URL de imagen o data URI SVG
+         */
         function getPlaylistCover(playlist) {
             if (playlist && playlist.cover) return playlist.cover;
             const name = (playlist && typeof playlist.name === 'string') ? playlist.name : '?';
@@ -42,6 +68,11 @@
             return 'data:image/svg+xml;base64,' + btoa(svg);
         }
 
+        /**
+         * Solicita al servidor que precargue las URLs de audio de las primeras 5 canciones
+         * Reduce el tiempo de espera al reproducir canciones cercanas en la cola
+         * @param {Array} songs - Array de canciones a precargar
+         */
         function prefetchSongs(songs) {
             if (!songs || songs.length === 0) return;
             const ids = songs.slice(0, 5).map(s => s.id || s.song_id).filter(Boolean);
@@ -53,6 +84,13 @@
             }).catch(() => {});
         }
 
+        /**
+         * Muestra el menú contextual (3 puntos) de una canción
+         * Posiciona el menú evitando que se salga de los bordes de la ventana
+         * Actualiza el texto del botón de like según si ya está en favoritos
+         * @param {MouseEvent} e - Evento de click para obtener posición
+         * @param {Object} song - Canción sobre la que se abre el menú
+         */
         function showSongContextMenu(e, song) {
             scmSong = song;
             const menu = document.getElementById('songContextMenu');
@@ -76,11 +114,21 @@
             }
         }
 
+        /**
+         * Oculta el menú contextual de canción y limpia la referencia a la canción activa
+         */
         function hideSongContextMenu() {
             document.getElementById('songContextMenu').style.display = 'none';
             scmSong = null;
         }
 
+        /**
+         * Construye el bloque de botones de acción para una canción en cualquier lista
+         * Devuelve un div con: botón de like (corazón) y botón de más opciones (3 puntos)
+         * El corazón se pinta verde si la canción ya está en favoritos
+         * @param {Object} song - Objeto canción
+         * @returns {HTMLElement} Contenedor con los botones de acción
+         */
         function buildSongActions(song) {
             const wrap = document.createElement('div');
             wrap.className = 'song-actions';
@@ -117,6 +165,17 @@
             return wrap;
         }
 
+        /**
+         * Inicializa todos los eventos globales de la interfaz tras cargar el DOM:
+         * - Cierra el menú contextual al hacer clic fuera
+         * - Opciones del menú: añadir a cola, ir al artista, añadir a playlist, like, compartir
+         * - Filtro de búsqueda en la vista de biblioteca
+         * - Toggle de vista cuadrícula/lista en biblioteca
+         * - Filtros de categoría (pills) en biblioteca y sidebar
+         * - Búsqueda en la sidebar con apertura/cierre animado
+         * - Botón de crear playlist
+         * - Efecto de scroll en la barra superior (topBar)
+         */
         function initUiBindings() {
             document.addEventListener('DOMContentLoaded', () => {
                 document.addEventListener('click', (evt) => {
