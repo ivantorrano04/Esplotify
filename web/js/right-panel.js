@@ -594,6 +594,11 @@
             window._rpRenderNowPlaying = renderNowPlaying;
             window._rpRenderQueue = renderQueue;
             window._rpOpenPanel = openPanel;
+            // Permite precargar letras desde script.js cuando empieza una canción
+            window._rpPreloadLyrics = (songId, title, artist) => {
+                if (lyricsLoaded === songId) return; // ya cargadas para esta canción
+                loadAndDisplayLyrics(songId, title, artist);
+            };
         }
 
         return {
