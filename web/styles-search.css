@@ -452,6 +452,22 @@
     color: #a7a7a7;
     flex-shrink: 0;
 }
+/* Botón 3 puntos en filas de álbum */
+.album-track-dots {
+    background: none;
+    border: none;
+    color: #a7a7a7;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+.album-track-row:hover .album-track-dots { opacity: 1; }
+.album-track-dots:hover { color: #ffffff; background: rgba(255,255,255,0.1); }
 
 /* Album back button & save button */
 .album-back-btn {

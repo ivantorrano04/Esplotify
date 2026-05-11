@@ -318,6 +318,18 @@
                     </div>
                     <span class="album-track-dur">${formatDuration(song.duration)}</span>
                 `;
+                // Botón de 3 puntos - Bug B fix
+                const dotsBtn = document.createElement('button');
+                dotsBtn.className = 'album-track-dots';
+                dotsBtn.title = 'Más opciones';
+                dotsBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>`;
+                dotsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof window._showSongContextMenu === 'function') {
+                        window._showSongContextMenu(e, song);
+                    }
+                });
+                row.appendChild(dotsBtn);
                 row.addEventListener('click', () => setQueueAndPlayFromSongs(tracks, song));
                 listEl.appendChild(row);
             });
