@@ -63,10 +63,6 @@
         }
 
         function scrollToLyric(index) {
-            if (typeof window._rpScrollToLyric === 'function') {
-                window._rpScrollToLyric(index);
-                return;
-            }
             const currentLine = document.querySelector(`#lyricsText [data-index="${index}"]`);
             if (!currentLine || !lyricsAutoScroll) return;
             const container = document.querySelector('#rpLyricsPane .lyrics-content');
@@ -599,6 +595,8 @@
                 if (lyricsLoaded === songId) return; // ya cargadas para esta canción
                 loadAndDisplayLyrics(songId, title, artist);
             };
+            // Getter para que script.js pueda saber si el panel de letras está abierto
+            window._rpIsLyricsOpen = () => isLyricsPanelOpen;
         }
 
         return {

@@ -1061,9 +1061,8 @@ window.playSongAtIndex = async function playSongAtIndex(index) {
         });
         currentAudio.addEventListener('timeupdate', () => {
             updateProgress();
-            if (isLyricsPanelOpen) {
-                updateLyrics(currentAudio.currentTime);
-            }
+            // Llama siempre a updateLyrics; el módulo internamente comprueba si el panel está abierto
+            updateLyrics(currentAudio.currentTime);
             if (typeof window._rpRefreshNowPlayingStats === 'function') {
                 window._rpRefreshNowPlayingStats();
             }
