@@ -1042,6 +1042,14 @@ window.playSongAtIndex = async function playSongAtIndex(index) {
             if (typeof window._rpRefreshNowPlayingStats === 'function') {
                 window._rpRefreshNowPlayingStats();
             }
+            // Abrir siempre el panel lateral en la pestaña "Now Playing"
+            if (typeof window._rpOpenPanel === 'function') {
+                window._rpOpenPanel('nowplaying');
+            }
+        }, { once: true }); // Solo la primera vez que empieza (no en cada resume)
+        currentAudio.addEventListener('play', () => {
+            updatePlayPauseIcon();
+            updatePlayingRow();
         });
         currentAudio.addEventListener('pause', () => {
             isLoading = false;
